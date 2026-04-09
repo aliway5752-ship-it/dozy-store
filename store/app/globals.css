@@ -1,0 +1,72 @@
+@import 'tailwindcss';
+
+@theme {
+  --background-image-gradient-radial: radial-gradient(var(--tw-gradient-stops));
+  --background-image-gradient-conic: conic-gradient(
+    from 180deg at 50% 50%,
+    var(--tw-gradient-stops)
+  );
+  --color-luxury-gold: #D4AF37;
+  --color-luxury-emerald: #022C22;
+  --color-luxury-black: #0a0a0a;
+}
+
+/*
+  The default border color has changed to `currentColor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+}
+
+html, body, :root {
+  height: 100%;
+}
+
+body {
+  background: white;
+  color: #0f172a;
+}
+
+@layer utilities {
+  .luxury-emerald {
+      background-color: var(--color-luxury-emerald);
+  }
+
+  .luxury-card {
+    @apply bg-luxury-black border border-luxury-gold/20 shadow-lg transition-all duration-500;
+  }
+
+  .glass-gold {
+    @apply bg-white/5 backdrop-blur-md border border-luxury-gold/30 shadow-[0_0_15px_rgba(212,175,55,0.1)];
+  }
+
+  .text-gold {
+      color: var(--color-luxury-gold);
+  }
+
+  .hover-gold-glow:hover {
+      @apply shadow-[0_0_20px_rgba(212,175,55,0.3)] border-luxury-gold/60;
+  }
+
+  .loading-pulse {
+    animation: loadingPulse 1.25s ease-in-out infinite;
+  }
+}
+
+@keyframes loadingPulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}

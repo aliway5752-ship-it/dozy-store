@@ -1,0 +1,29 @@
+# Development dependencies
+node_modules
+.next
+
+# Local environment files
+.env.local
+.env.development.local
+.env.test.local
+
+# Build artifacts
+dist
+build
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage
+
+# Database connection test files
+check-db.js
+check-db-hardcoded.js
+
+# Temporary files
+*.tmp
+.temp

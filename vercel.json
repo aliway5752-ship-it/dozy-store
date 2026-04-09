@@ -1,0 +1,34 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "admin/package.json",
+      "use": "@vercel/next",
+      "config": {
+        "buildCommand": "cd admin && npm run build",
+        "installCommand": "cd admin && npm install"
+      }
+    },
+    {
+      "src": "store/package.json", 
+      "use": "@vercel/next",
+      "config": {
+        "buildCommand": "cd store && npm run build",
+        "installCommand": "cd store && npm install"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/admin/(.*)",
+      "dest": "/admin/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/store/$1"
+    }
+  ],
+  "env": {
+    "PRISMA_GENERATE_DATAPROXY": "true"
+  }
+}
