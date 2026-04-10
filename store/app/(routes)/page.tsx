@@ -3,8 +3,9 @@
 import Container from "@/components/ui/container";
 import Billboard from "@/components/billboard";
 import ProductList from "@/components/product-list";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useState, useEffect } from "react";
-import { Product, Billboard as BillboardType } from "@/types";
+import { Product, Billboard as BillboardType, Category } from "@/types";
 
 const HomePage = () => {
     const [products, setProducts] = useState<Product[]>([]);
@@ -89,8 +90,20 @@ const HomePage = () => {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-screen luxury-emerald">
-                <div className="text-white text-2xl font-bold">Loading...</div>
+            <div className="flex flex-col luxury-emerald min-h-screen">
+                <Container>
+                    <div className="py-12 space-y-12">
+                        <Skeleton className="h-96 w-full rounded-3xl" />
+                        <div className="flex flex-col px-4 sm:px-6 lg:px-8 mt-12 bg-luxury-emerald/30 backdrop-blur-3xl rounded-3xl py-12 shadow-2xl border border-luxury-gold/10">
+                            <Skeleton className="h-8 w-48 mb-8" />
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12">
+                                {[1, 2, 3, 4, 5, 6].map((i) => (
+                                    <Skeleton key={i} className="h-96 w-full rounded-2xl" />
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </Container>
             </div>
         );
     }

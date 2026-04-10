@@ -86,11 +86,23 @@ export async function POST(
     }
 
     const order = await prismadb.$transaction(async (tx) => {
+      // Get the next order number for this store
+      const lastOrder = await tx.order.findFirst({
+        where: { storeId },
+        orderBy: { orderNumber: 'desc' },
+        select: { orderNumber: true }
+      });
+
+      const nextOrderNumber = lastOrder ? lastOrder.orderNumber + 1 : 1001;
+      const orderCode = `#DZ-${nextOrderNumber}`;
+
       const createdOrder = await tx.order.create({
         data: {
           storeId,
           isPaid: false,
           status: "PENDING",
+          orderNumber: nextOrderNumber,
+          orderCode: orderCode,
           shippingPrice: store.shippingPrice, // حفظ سعر الشحن الحالي كـ Snapshot
           customerName: safeName,
           customerId: customerId || null,

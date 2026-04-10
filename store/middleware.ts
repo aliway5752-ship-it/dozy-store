@@ -8,6 +8,23 @@ const isProtectedRoute = createRouteMatcher([
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
+  // Check if user is blocked
+  const { userId } = await auth();
+  if (userId) {
+    try {
+      const response = await fetch(`https://dozy-admin.vercel.app/api/e20f258c-b623-41e1-ab41-d381b626da2b/profile?userId=${userId}`);
+      if (response.ok) {
+        const user = await response.json();
+        if (user?.isBlocked) {
+          return new Response('Your account has been blocked. Please contact support.', { status: 403 });
+        }
+      }
+    } catch (error) {
+      // If the check fails, allow the user to proceed (fail open)
+      console.error('Error checking user block status:', error);
+    }
+  }
+
   if (isProtectedRoute(req)) {
       await auth.protect();
   }

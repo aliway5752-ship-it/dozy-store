@@ -8,6 +8,7 @@ import Filter from "./components/filter";
 import NoResults from "@/components/ui/no-results";
 import ProductCard from "@/components/ui/product-card";
 import MobileFilters from "./components/mobile-filters";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Suspense } from "react";
 
 export const dynamic = 'force-dynamic';
@@ -34,7 +35,7 @@ const CategoryPage = async ({ params, searchParams }: { params: Params, searchPa
                         <MobileFilters sizes={sizes} colors={colors} />
                         {/*Add Computer Filters*/}
                         <div className="hidden lg:block">
-                            <Suspense fallback={<div>Loading filters...</div>}>
+                            <Suspense fallback={<div className="space-y-8"><Skeleton className="h-8 w-full" /><Skeleton className="h-8 w-full" /></div>}>
                                 <Filter
                                     valueKey="sizeId"
                                     name="Sizes"
