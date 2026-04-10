@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import * as z from 'zod'
 import { Category, Color, Image, Product, Size } from "@prisma/client";
 import { Heading } from "@/components/ui/heading";
@@ -56,6 +56,7 @@ export const ProductForm: React.FC<ProductFromProps> = ({
 
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [imageUrls, setImageUrls] = useState<{ url: string }[]>(initialData?.images || []);
 
     const title = initialData ? 'Edit product' : 'Create product'
     const description = initialData ? 'Edit a product' : 'Add a new product'
@@ -82,6 +83,11 @@ export const ProductForm: React.FC<ProductFromProps> = ({
             stock: 0,
         }
     });
+
+    // Sync local imageUrls state to form field
+    useEffect(() => {
+        form.setValue('images', imageUrls);
+    }, [imageUrls, form]);
 
     const onSubmit = async (data: ProductFormValues) => {
         try {
@@ -143,10 +149,10 @@ export const ProductForm: React.FC<ProductFromProps> = ({
                                 <FormLabel>Images</FormLabel>
                                 <FormControl>
                                     <ImageUpload
-                                        value={field.value.map((image) => image.url)}
+                                        value={imageUrls.map((image) => image.url)}
                                         disabled={loading}
-                                        onChange={(newUrls) => field.onChange([...field.value, ...newUrls.map((url) => ({ url }))])}
-                                        onRemove={(url) => field.onChange([...field.value.filter((current) => current.url !== url)])}
+                                        onChange={(url) => setImageUrls((prev) => [...prev, { url }])}
+                                        onRemove={(url) => setImageUrls((prev) => prev.filter((current) => current.url !== url))}
                                     />
                                 </FormControl>
                                 <FormMessage />
