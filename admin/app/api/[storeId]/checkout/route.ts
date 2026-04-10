@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prismadb from "@/lib/prismadb";
 import { sanitizeEmail, sanitizePhone, sanitizeText, toPositiveInt } from "@/lib/input";
+import { sendOrderConfirmationEmail } from "@/lib/resend";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -134,6 +135,27 @@ export async function POST(
 
       return createdOrder;
     });
+
+    // Send order confirmation emails
+    const orderItemsWithDetails = await prismadb.orderItem.findMany({
+      where: { orderId: order.id },
+      include: { product: true }
+    });
+
+    const emailData = {
+      orderCode: order.orderCode,
+      customerName: safeName,
+      customerEmail: safeEmail,
+      items: orderItemsWithDetails.map(item => ({
+        name: item.product.name,
+        quantity: item.quantity,
+        price: Number(item.product.price)
+      })),
+      total: orderItemsWithDetails.reduce((sum, item) => sum + (Number(item.product.price) * item.quantity), 0),
+      status: order.status
+    };
+
+    await sendOrderConfirmationEmail(emailData);
 
     return NextResponse.json(
       {

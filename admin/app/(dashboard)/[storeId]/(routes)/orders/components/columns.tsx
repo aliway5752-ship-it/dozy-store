@@ -18,6 +18,8 @@ export type OrderColumn = {
   products: string; 
   status: string;
   createdAt: string;
+  customerId?: string;
+  storeId?: string;
 }
 
 export const columns: ColumnDef<OrderColumn>[] = [
@@ -38,9 +40,19 @@ export const columns: ColumnDef<OrderColumn>[] = [
   {
     header: "Customer Info",
     cell: ({ row }) => {
+      const customerId = row.original.customerId;
       return (
         <div className="flex flex-col text-xs gap-1">
-          <span className="font-bold text-foreground text-sm">{row.original.customerName || "Guest"}</span>
+          {customerId ? (
+            <button
+              onClick={() => window.open(`/admin/${row.original.storeId}/users/${customerId}`, '_blank')}
+              className="font-bold text-foreground text-sm hover:text-sky-600 transition-colors cursor-pointer"
+            >
+            {row.original.customerName}
+          </button>
+          ) : (
+            <span className="font-bold text-foreground text-sm">{row.original.customerName || "Guest"}</span>
+          )}
           <span className="text-muted-foreground">Ph: {row.original.phone}</span>
         </div>
       )
