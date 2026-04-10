@@ -22,8 +22,8 @@ const Navbar = () => {
         fetchCategories();
     }, []);
 
-    // Hide navbar on checkout and wishlist pages
-    const isHiddenRoute = pathname.startsWith('/checkout') || pathname.startsWith('/wishlist');
+    // Hide navbar on checkout, cart, and wishlist pages
+    const isHiddenRoute = pathname.startsWith('/checkout') || pathname.startsWith('/cart') || pathname.startsWith('/wishlist');
 
     if (isHiddenRoute) {
         return null;

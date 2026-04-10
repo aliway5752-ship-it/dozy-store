@@ -95,7 +95,6 @@ export async function POST(
       });
 
       const nextOrderNumber = lastOrder ? lastOrder.orderNumber + 1 : 1001;
-      const orderCode = `#DZ-${nextOrderNumber}`;
 
       const createdOrder = await tx.order.create({
         data: {
@@ -103,7 +102,6 @@ export async function POST(
           isPaid: false,
           status: "PENDING",
           orderNumber: nextOrderNumber,
-          orderCode: orderCode,
           shippingPrice: store.shippingPrice, // حفظ سعر الشحن الحالي كـ Snapshot
           customerName: safeName,
           customerId: customerId || null,
@@ -136,26 +134,33 @@ export async function POST(
       return createdOrder;
     });
 
-    // Send order confirmation emails
-    const orderItemsWithDetails = await prismadb.orderItem.findMany({
-      where: { orderId: order.id },
-      include: { product: true }
-    });
+    // Send order confirmation emails (non-blocking)
+    try {
+      const orderItemsWithDetails = await prismadb.orderItem.findMany({
+        where: { orderId: order.id },
+        include: { product: true }
+      });
 
-    const emailData = {
-      orderCode: order.orderCode,
-      customerName: safeName,
-      customerEmail: safeEmail,
-      items: orderItemsWithDetails.map(item => ({
-        name: item.product.name,
-        quantity: item.quantity,
-        price: Number(item.product.price)
-      })),
-      total: orderItemsWithDetails.reduce((sum, item) => sum + (Number(item.product.price) * item.quantity), 0),
-      status: order.status
-    };
+      const orderCode = `#DZ-${order.orderNumber}`;
 
-    await sendOrderConfirmationEmail(emailData);
+      const emailData = {
+        orderCode: orderCode,
+        customerName: safeName,
+        customerEmail: safeEmail,
+        items: orderItemsWithDetails.map(item => ({
+          name: item.product.name,
+          quantity: item.quantity,
+          price: Number(item.product.price)
+        })),
+        total: orderItemsWithDetails.reduce((sum, item) => sum + (Number(item.product.price) * item.quantity), 0),
+        status: order.status
+      };
+
+      await sendOrderConfirmationEmail(emailData);
+    } catch (emailError) {
+      console.log("[CHECKOUT_EMAIL_ERROR]", emailError);
+      // Email failure should not prevent order completion
+    }
 
     return NextResponse.json(
       {
