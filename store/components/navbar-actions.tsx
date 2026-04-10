@@ -6,10 +6,11 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuth, useUser } from "@clerk/nextjs";
 import Link from 'next/link';
+import { toast } from 'react-hot-toast';
 
 export const NavbarActions = () => {
     const [isMounted, setIsMounted] = useState(false);
-    const { userId } = useAuth();
+    const { userId, isSignedIn } = useAuth();
     const { user } = useUser();
     const cart = useCart();
     const router = useRouter();
@@ -17,6 +18,27 @@ export const NavbarActions = () => {
     useEffect(() => {
         setIsMounted(true);
     }, []);
+
+    const handleCartClick = () => {
+        if (!isSignedIn) {
+            toast.error('Sign in to access your personalized features', {
+                duration: 3000,
+                style: {
+                    background: 'rgba(0, 0, 0, 0.9)',
+                    color: '#fff',
+                    padding: '12px 24px',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    border: '1px solid rgba(212, 175, 55, 0.3)'
+                }
+            });
+            setTimeout(() => {
+                router.push('/sign-in');
+            }, 1500);
+        } else {
+            router.push('/cart');
+        }
+    };
 
     if (!isMounted) return null;
 
@@ -35,9 +57,9 @@ export const NavbarActions = () => {
                 {userId ? (
                     <Link href="/profile">
                         <div className="w-8 h-8 rounded-full overflow-hidden border border-white/20 hover:scale-110 transition-transform cursor-pointer shadow-lg">
-                            <img 
-                                src={user?.imageUrl} 
-                                alt="Profile" 
+                            <img
+                                src={user?.imageUrl}
+                                alt="Profile"
                                 className="h-full w-full object-cover"
                             />
                         </div>
@@ -55,12 +77,14 @@ export const NavbarActions = () => {
             {/* زرار السلة */}
             <Button
                 className='flex items-center px-6 py-2.5 glass-gold hover:bg-luxury-gold/20 hover:scale-105 transition-all duration-500 rounded-full'
-                onClick={() => router.push("/cart")}
+                onClick={handleCartClick}
             >
                 <ShoppingBag size={20} className='text-white' />
-                <span className='ml-2 text-sm font-bold text-white tracking-widest'>
-                    {cart?.items?.length}
-                </span>
+                {isSignedIn && (
+                    <span className='ml-2 text-sm font-bold text-white tracking-widest'>
+                        {cart?.items?.length}
+                    </span>
+                )}
             </Button>
         </div>
     );

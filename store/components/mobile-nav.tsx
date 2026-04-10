@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Heart, Package } from "lucide-react";
 import Link from "next/link";
-import { MainNav } from "@/components";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
+import { toast } from "react-hot-toast";
 
 interface MobileNavProps {
   data: {
@@ -14,6 +16,31 @@ interface MobileNavProps {
 
 const MobileNav: React.FC<MobileNavProps> = ({ data }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
+  const { isSignedIn } = useAuth();
+
+  const handleProtectedRoute = (e: React.MouseEvent, href: string) => {
+    e.preventDefault();
+    if (!isSignedIn) {
+      toast.error('Sign in to access your personalized features', {
+        duration: 3000,
+        style: {
+          background: 'rgba(0, 0, 0, 0.9)',
+          color: '#fff',
+          padding: '12px 24px',
+          borderRadius: '8px',
+          fontSize: '14px',
+          border: '1px solid rgba(212, 175, 55, 0.3)'
+        }
+      });
+      setTimeout(() => {
+        router.push('/sign-in');
+      }, 1500);
+    } else {
+      router.push(href);
+      setIsOpen(false);
+    }
+  };
 
   return (
     <>
@@ -58,20 +85,20 @@ const MobileNav: React.FC<MobileNavProps> = ({ data }) => {
                   {category.name}
                 </Link>
               ))}
-              <Link
-                href="/my-orders"
-                className="block text-xl text-white hover:text-luxury-gold transition-colors py-2"
-                onClick={() => setIsOpen(false)}
+              <button
+                onClick={(e) => handleProtectedRoute(e, '/my-orders')}
+                className="flex items-center gap-3 text-xl text-white hover:text-luxury-gold transition-colors py-2 w-full text-left"
               >
-                My Orders
-              </Link>
-              <Link
-                href="/wishlist"
-                className="block text-xl text-white hover:text-luxury-gold transition-colors py-2"
-                onClick={() => setIsOpen(false)}
+                <Package size={20} />
+                <span>My Orders</span>
+              </button>
+              <button
+                onClick={(e) => handleProtectedRoute(e, '/wishlist')}
+                className="flex items-center gap-3 text-xl text-white hover:text-luxury-gold transition-colors py-2 w-full text-left"
               >
-                Wishlist
-              </Link>
+                <Heart size={20} />
+                <span>Wishlist</span>
+              </button>
             </div>
 
             {/* Footer */}
