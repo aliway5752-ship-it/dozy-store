@@ -18,7 +18,13 @@ export async function GET (
             }
         })
 
-        return NextResponse.json(billboard);
+        return NextResponse.json(billboard, {
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+            }
+        });
     } catch (err) {
         console.log('[BILLBOARD_GET]', err)
         return new NextResponse('Internal error', { status: 500 })

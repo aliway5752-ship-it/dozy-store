@@ -26,7 +26,13 @@ export async function GET (
             }
         })
 
-        return NextResponse.json(product);
+        return NextResponse.json(product, {
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+            }
+        });
     } catch (err) {
         console.log('[PRODUCT_GET]', err)
         return new NextResponse('Internal error', { status: 500 })

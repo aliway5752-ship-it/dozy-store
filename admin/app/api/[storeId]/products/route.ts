@@ -113,7 +113,13 @@ export async function GET(
             orderBy: { createdAt: 'desc' }
         });
 
-        return NextResponse.json(products);
+        return NextResponse.json(products, {
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+            }
+        });
     } catch (err) {
         console.log(`[PRODUCTS_GET]`, err);
         return NextResponse.json({ error: "Internal server error" }, { status: 500 });
