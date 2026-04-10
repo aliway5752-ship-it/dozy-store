@@ -6,6 +6,8 @@ import OrderTimeline from "@/components/order-timeline";
 import UserProfile from "@/components/UserProfile/UserProfile";
 import Currency from "@/components/ui/currency";
 
+export const revalidate = 0;
+
 const ProfilePage = async () => {
     const { userId } = await auth();
     const user = await currentUser();
