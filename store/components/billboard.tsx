@@ -2,10 +2,14 @@ import { Billboard as BillboardType } from '@/types';
 import Image from "next/image";
 
 interface BillboardProps {
-    data: BillboardType
+    data: BillboardType | null
 };
 
 const Billboard: React.FC<BillboardProps> = ({ data }) => {
+    if (!data) {
+        return null;
+    }
+
     return (
         <div className='p-0 overflow-hidden'>
             <div className='relative aspect-[1.8/1] md:aspect-[3/1] overflow-hidden'>

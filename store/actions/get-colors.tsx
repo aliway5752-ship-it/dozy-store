@@ -1,9 +1,10 @@
 import { Color } from "@/types";
 
-const URL = `${process.env.NEXT_PUBLIC_API_URL}/colors`
+const URL = `https://dozy-admin.vercel.app/api/e20f258c-b623-41e1-ab41-d381b626da2b/colors`
 
 const getColors = async (): Promise<Color[]> => {
     try {
+        console.log("Fetching colors from URL:", URL);
         const res = await fetch(URL, { cache: 'no-store' });
         if (!res.ok) {
             return [];

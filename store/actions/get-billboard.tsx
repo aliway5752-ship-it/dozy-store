@@ -1,10 +1,10 @@
 import { Billboard } from "@/types";
 
-const URL = `${process.env.NEXT_PUBLIC_API_URL}/billboards`
+const URL = `https://dozy-admin.vercel.app/api/e20f258c-b623-41e1-ab41-d381b626da2b/billboards`
 
 const getBillboard = async (id: string): Promise<Billboard | null> => {
     try {
-        // إضافة cache: 'no-store' عشان صورة الـ Billboard تتحدث
+        console.log("Fetching billboard from URL:", `${URL}/${id}`);
         const res = await fetch(`${URL}/${id}`, { cache: 'no-store' });
         if (!res.ok) {
             return null;

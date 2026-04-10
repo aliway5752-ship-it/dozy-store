@@ -1,7 +1,7 @@
 import { Product } from "@/types";
 import qs from 'query-string';
 
-const URL = `${process.env.NEXT_PUBLIC_API_URL}/products`;
+const URL = `https://dozy-admin.vercel.app/api/e20f258c-b623-41e1-ab41-d381b626da2b/products`;
 
 interface Query {
     categoryId?: string;
@@ -12,6 +12,7 @@ interface Query {
 
 const getProducts = async (query: Query): Promise<Product[]> => {
     try {
+        console.log("Fetching products from URL:", URL);
         const url = qs.stringifyUrl({
             url: URL,
             query: {
@@ -22,7 +23,7 @@ const getProducts = async (query: Query): Promise<Product[]> => {
             }
         });
 
-        // إضافة cache: 'no-store' لضمان جلب المنتجات الجديدة بعد الفورمات
+        console.log("Final products URL:", url);
         const res = await fetch(url, { cache: 'no-store' });
         if (!res.ok) {
             return [];
