@@ -2,7 +2,7 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
 const ALLOWED_EMAILS = [
   'ali.way.5752@gmail.com',
-  'second-admin@example.com',
+  'doaasalem115@gmail.com',
 ];
 
 const isPublicRoute = createRouteMatcher(['/api/(.*)']);
@@ -16,7 +16,7 @@ export default clerkMiddleware(async (auth, req) => {
   const session = await auth();
   const userEmail = session.sessionClaims?.email as string | undefined;
 
-  if (userEmail && !ALLOWED_EMAILS.includes(userEmail)) {
+  if (userEmail && !ALLOWED_EMAILS.includes(userEmail.toLowerCase())) {
     const ipAddress = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
     console.warn(`Unauthorized admin access attempt: Email=${userEmail}, IP=${ipAddress}, Path=${req.nextUrl.pathname}`);
 
