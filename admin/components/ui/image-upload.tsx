@@ -8,7 +8,7 @@ import { CldUploadWidget, CloudinaryUploadWidgetResults, CloudinaryUploadWidgetI
 
 interface ImageUploadProps {
   disabled?: boolean;
-  onChange: (value: string) => void;
+  onChange: (value: string[]) => void;
   onRemove: (value: string) => void;
   value: string[];
 }
@@ -25,17 +25,31 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     setIsMounted(true);
   }, []);
 
-  const onUpload = (result: CloudinaryUploadWidgetResults, { widget }: any) => {
+  const onUpload = (result: CloudinaryUploadWidgetResults) => {
     const info = result?.info;
     if (!info || typeof info !== 'object') {
       return;
     }
+    
+    // Handle both single file and multiple file uploads
     const uploadInfo = info as CloudinaryUploadWidgetInfo;
-    const secureUrl = uploadInfo.secure_url;
-    if (!secureUrl || !secureUrl.startsWith("https://res.cloudinary.com/")) {
-      return;
+    
+    if (Array.isArray(uploadInfo)) {
+      // Multiple files uploaded
+      const newUrls = uploadInfo
+        .map((item: any) => item?.secure_url)
+        .filter((url: string) => url && url.startsWith("https://res.cloudinary.com/"));
+      
+      if (newUrls.length > 0) {
+        onChange([...value, ...newUrls]);
+      }
+    } else {
+      // Single file uploaded
+      const secureUrl = uploadInfo.secure_url;
+      if (secureUrl && secureUrl.startsWith("https://res.cloudinary.com/")) {
+        onChange([...value, secureUrl]);
+      }
     }
-    onChange(secureUrl);
   };
 
   if (!isMounted) {
@@ -61,12 +75,13 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
           </div>
         ))}
       </div>
-      {/* التعديل الجوهري هنا في التعامل مع الـ Widget */}
       <CldUploadWidget 
         onSuccess={onUpload} 
         uploadPreset="dozy_preset"
         options={{
-          maxFiles: 10 // السماح برفع حتى 10 صور
+          maxFiles: 10,
+          multiple: true,
+          resourceType: "image"
         }}
       >
         {({ open }) => {
