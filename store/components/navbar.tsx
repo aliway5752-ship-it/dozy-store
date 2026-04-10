@@ -1,3 +1,6 @@
+"use client";
+
+import { usePathname } from "next/navigation";
 import Container from "@/components/ui/container";
 import Link from "next/link";
 import { MainNav } from "@/components";
@@ -5,12 +8,19 @@ import getCategories from "@/actions/get-categories";
 import { NavbarActions } from "./navbar-actions";
 import Image from "next/image";
 import MobileNav from "./mobile-nav";
-import { headers } from "next/headers";
+import { useEffect, useState } from "react";
 
-const Navbar = async () => {
-    const categories = await getCategories();
-    const headersList = await headers();
-    const pathname = headersList.get('x-pathname') || '';
+const Navbar = () => {
+    const pathname = usePathname();
+    const [categories, setCategories] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            const data = await getCategories();
+            setCategories(data || []);
+        };
+        fetchCategories();
+    }, []);
 
     // Hide navbar on checkout and wishlist pages
     const isHiddenRoute = pathname.startsWith('/checkout') || pathname.startsWith('/wishlist');
@@ -42,12 +52,12 @@ const Navbar = async () => {
 
                 {/* الجزء الأوسط: المنيو (تأكد أن نصوص الـ MainNav لونها أبيض من ملفها الخاص) */}
                 <div className="flex-1 hidden md:flex justify-center">
-                    <MainNav data={categories || []} />
+                    <MainNav data={categories} />
                 </div>
 
                 {/* الجزء الأيمن: أيقونات العربة والحساب */}
                 <div className="flex items-center gap-x-4">
-                    <MobileNav data={categories || []} />
+                    <MobileNav data={categories} />
                     <NavbarActions />
                 </div>
             </div>

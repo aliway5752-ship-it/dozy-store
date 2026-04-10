@@ -5,6 +5,7 @@ import { useAuth } from "@clerk/nextjs";
 import Container from "@/components/ui/container";
 import OrderStatusStepper from "@/components/order-status-stepper";
 import { Skeleton } from "@/components/ui/skeleton";
+import { API_URL } from "@/lib/config";
 
 interface Order {
   id: string;
@@ -32,7 +33,7 @@ const MyOrdersPage = () => {
 
     const fetchOrders = async () => {
       try {
-        const res = await fetch(`https://dozy-admin.vercel.app/api/05f25ff6-71b1-4de2-90a8-369b098b1f12/orders?customerId=${userId}`, {
+        const res = await fetch(`${API_URL}/orders?customerId=${userId}`, {
           cache: 'no-store',
           headers: {
             'Content-Type': 'application/json',

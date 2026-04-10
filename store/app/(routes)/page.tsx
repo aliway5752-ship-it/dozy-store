@@ -6,6 +6,7 @@ import ProductList from "@/components/product-list";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState, useEffect } from "react";
 import { Product, Billboard as BillboardType, Category } from "@/types";
+import { API_URL } from "@/lib/config";
 
 const HomePage = () => {
     const [products, setProducts] = useState<Product[]>([]);
@@ -19,7 +20,7 @@ const HomePage = () => {
                 console.log("Client-side fetching products...");
 
                 // Fetch products
-                const productsRes = await fetch('https://dozy-admin.vercel.app/api/05f25ff6-71b1-4de2-90a8-369b098b1f12/products', {
+                const productsRes = await fetch(`${API_URL}/products`, {
                     cache: 'no-store',
                     headers: {
                         'Content-Type': 'application/json',
@@ -30,7 +31,7 @@ const HomePage = () => {
                 setProducts(Array.isArray(productsData) ? productsData : []);
 
                 // Fetch store to get billboardId
-                const storeRes = await fetch('https://dozy-admin.vercel.app/api/05f25ff6-71b1-4de2-90a8-369b098b1f12', {
+                const storeRes = await fetch(API_URL, {
                     cache: 'no-store',
                     headers: {
                         'Content-Type': 'application/json',
@@ -42,7 +43,7 @@ const HomePage = () => {
                 // Fetch billboard if store has billboardId
                 let billboardData = null;
                 if (storeData?.billboardId) {
-                    const billboardRes = await fetch(`https://dozy-admin.vercel.app/api/05f25ff6-71b1-4de2-90a8-369b098b1f12/billboards/${storeData.billboardId}`, {
+                    const billboardRes = await fetch(`${API_URL}/billboards/${storeData.billboardId}`, {
                         cache: 'no-store',
                         headers: {
                             'Content-Type': 'application/json',
@@ -55,7 +56,7 @@ const HomePage = () => {
 
                 // Fallback: fetch categories and use first category's billboard
                 if (!billboardData) {
-                    const categoriesRes = await fetch('https://dozy-admin.vercel.app/api/05f25ff6-71b1-4de2-90a8-369b098b1f12/categories', {
+                    const categoriesRes = await fetch(`${API_URL}/categories`, {
                         cache: 'no-store',
                         headers: {
                             'Content-Type': 'application/json',
@@ -65,7 +66,7 @@ const HomePage = () => {
                     console.log("Client-side categories:", categoriesData);
 
                     if (categoriesData && categoriesData.length > 0) {
-                        const categoryRes = await fetch(`https://dozy-admin.vercel.app/api/05f25ff6-71b1-4de2-90a8-369b098b1f12/categories/${categoriesData[0].id}`, {
+                        const categoryRes = await fetch(`${API_URL}/categories/${categoriesData[0].id}`, {
                             cache: 'no-store',
                             headers: {
                                 'Content-Type': 'application/json',

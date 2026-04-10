@@ -1,4 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { API_URL } from "@/lib/config";
 
 // Protecting specific routes (like checkout or profile)
 // By default, we let users browse the store but protect sensitive areas
@@ -12,7 +13,7 @@ export default clerkMiddleware(async (auth, req) => {
   const { userId } = await auth();
   if (userId) {
     try {
-      const response = await fetch(`https://dozy-admin.vercel.app/api/05f25ff6-71b1-4de2-90a8-369b098b1f12/profile?userId=${userId}`);
+      const response = await fetch(`${API_URL}/profile?userId=${userId}`);
       if (response.ok) {
         const user = await response.json();
         if (user?.isBlocked) {

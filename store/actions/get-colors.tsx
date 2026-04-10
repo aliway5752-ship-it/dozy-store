@@ -1,6 +1,7 @@
 import { Color } from "@/types";
+import { API_URL } from '@/lib/config';
 
-const URL = `https://dozy-admin.vercel.app/api/05f25ff6-71b1-4de2-90a8-369b098b1f12/colors`
+const URL = `${API_URL}/colors`
 
 const getColors = async (): Promise<Color[]> => {
     try {

@@ -1,7 +1,8 @@
 import { Product } from "@/types";
 import qs from 'query-string';
+import { API_URL } from '@/lib/config';
 
-const URL = `https://dozy-admin.vercel.app/api/05f25ff6-71b1-4de2-90a8-369b098b1f12/products`;
+const URL = `${API_URL}/products`;
 
 interface Query {
     categoryId?: string;

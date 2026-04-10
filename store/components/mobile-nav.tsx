@@ -65,6 +65,13 @@ const MobileNav: React.FC<MobileNavProps> = ({ data }) => {
               >
                 My Orders
               </Link>
+              <Link
+                href="/wishlist"
+                className="block text-xl text-white hover:text-luxury-gold transition-colors py-2"
+                onClick={() => setIsOpen(false)}
+              >
+                Wishlist
+              </Link>
             </div>
 
             {/* Footer */}

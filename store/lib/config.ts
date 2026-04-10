@@ -1,0 +1,1 @@
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://dozy-admin.vercel.app/api/05f25ff6-71b1-4de2-90a8-369b098b1f12';

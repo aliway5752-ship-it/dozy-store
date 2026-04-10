@@ -18,20 +18,38 @@ const MainNav: React.FC<MainNavProps> = ({ data }) => {
         active: pathname === `/category/${route.id}`
     }))
 
+    const additionalRoutes = [
+        { href: '/my-orders', label: 'My Orders', active: pathname === '/my-orders' },
+        { href: '/wishlist', label: 'Wishlist', active: pathname === '/wishlist' }
+    ]
+
     return (
         // إضافة justify-center للتأكد من توسط الأقسام داخل البار
         <nav className='flex items-center space-x-6 lg:space-x-10'>
             {routes.map(route => (
-                <Link 
-                    key={route.href} 
-                    href={route.href} 
+                <Link
+                    key={route.href}
+                    href={route.href}
                     className={cn(
-                        'text-[13px] font-bold transition-all uppercase tracking-[0.25em] drop-shadow-md hover:text-luxury-gold', 
+                        'text-[13px] font-bold transition-all uppercase tracking-[0.25em] drop-shadow-md hover:text-luxury-gold',
                         route.active ? 'text-luxury-gold' : 'text-white/90'
                     )}
                 >
                     {route.label}
                     {/* خط ذهبي نحيف جداً يظهر تحت العنصر النشط فقط */}
+                    {route.active && <div className="h-[1px] w-full bg-luxury-gold mt-1 shadow-[0_0_8px_rgba(212,175,55,0.5)]" />}
+                </Link>
+            ))}
+            {additionalRoutes.map(route => (
+                <Link
+                    key={route.href}
+                    href={route.href}
+                    className={cn(
+                        'text-[13px] font-bold transition-all uppercase tracking-[0.25em] drop-shadow-md hover:text-luxury-gold',
+                        route.active ? 'text-luxury-gold' : 'text-white/90'
+                    )}
+                >
+                    {route.label}
                     {route.active && <div className="h-[1px] w-full bg-luxury-gold mt-1 shadow-[0_0_8px_rgba(212,175,55,0.5)]" />}
                 </Link>
             ))}

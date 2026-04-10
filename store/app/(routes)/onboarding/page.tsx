@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
+import { API_URL } from "@/lib/config";
 import Container from "@/components/ui/container";
 
 const OnboardingPage = () => {
@@ -29,7 +30,7 @@ const OnboardingPage = () => {
     setLoading(true);
 
     try {
-      const res = await fetch('https://dozy-admin.vercel.app/api/05f25ff6-71b1-4de2-90a8-369b098b1f12/profile', {
+      const res = await fetch(`${API_URL}/profile`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
