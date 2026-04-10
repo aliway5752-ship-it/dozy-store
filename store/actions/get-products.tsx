@@ -24,7 +24,12 @@ const getProducts = async (query: Query): Promise<Product[]> => {
         });
 
         console.log("Final products URL:", url);
-        const res = await fetch(url, { cache: 'no-store' });
+        const res = await fetch(url, { 
+            cache: 'no-store',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
         if (!res.ok) {
             console.log("Products fetch failed with status:", res.status);
             return [];

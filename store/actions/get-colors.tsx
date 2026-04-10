@@ -5,7 +5,12 @@ const URL = `https://dozy-admin.vercel.app/api/e20f258c-b623-41e1-ab41-d381b626d
 const getColors = async (): Promise<Color[]> => {
     try {
         console.log("Fetching colors from URL:", URL);
-        const res = await fetch(URL, { cache: 'no-store' });
+        const res = await fetch(URL, { 
+            cache: 'no-store',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
         if (!res.ok) {
             return [];
         }

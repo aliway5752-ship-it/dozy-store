@@ -5,7 +5,12 @@ const URL = `https://dozy-admin.vercel.app/api/e20f258c-b623-41e1-ab41-d381b626d
 const getBillboard = async (id: string): Promise<Billboard | null> => {
     try {
         console.log("Fetching billboard from URL:", `${URL}/${id}`);
-        const res = await fetch(`${URL}/${id}`, { cache: 'no-store' });
+        const res = await fetch(`${URL}/${id}`, { 
+            cache: 'no-store',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
         if (!res.ok) {
             return null;
         }
