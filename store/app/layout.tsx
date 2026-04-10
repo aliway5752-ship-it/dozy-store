@@ -13,6 +13,8 @@ export const metadata: Metadata = {
   description: 'Your premium fashion destination',
 }
 
+export const revalidate = 0;
+
 export default function RootLayout({
   children,
 }: {
