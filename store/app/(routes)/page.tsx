@@ -1,35 +1,99 @@
+"use client";
+
 import Container from "@/components/ui/container";
 import Billboard from "@/components/billboard";
-import getCategories from "@/actions/get-categories";
-import getCategory from "@/actions/get-category";
-import getProducts from "@/actions/get-products";
-import getStore from "@/actions/get-store";
-import getBillboard from "@/actions/get-billboard";
 import ProductList from "@/components/product-list";
+import { useState, useEffect } from "react";
+import { Product, Billboard as BillboardType } from "@/types";
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+const HomePage = () => {
+    const [products, setProducts] = useState<Product[]>([]);
+    const [billboard, setBillboard] = useState<BillboardType | null>(null);
+    const [loading, setLoading] = useState(true);
 
-const HomePage = async () => {
-    const store = await getStore();
-    const categories = await getCategories();
-    
-    let billboard = null;
-    
-    // Try to get the main billboard from store settings
-    if (store?.billboardId) {
-        billboard = await getBillboard(store.billboardId);
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                setLoading(true);
+                console.log("Client-side fetching products...");
+
+                // Fetch products
+                const productsRes = await fetch('https://dozy-admin.vercel.app/api/e20f258c-b623-41e1-ab41-d381b626da2b/products', {
+                    cache: 'no-store',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                const productsData = await productsRes.json();
+                console.log("Client-side products:", productsData);
+                setProducts(Array.isArray(productsData) ? productsData : []);
+
+                // Fetch store to get billboardId
+                const storeRes = await fetch('https://dozy-admin.vercel.app/api/e20f258c-b623-41e1-ab41-d381b626da2b', {
+                    cache: 'no-store',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                const storeData = await storeRes.json();
+                console.log("Client-side store:", storeData);
+
+                // Fetch billboard if store has billboardId
+                let billboardData = null;
+                if (storeData?.billboardId) {
+                    const billboardRes = await fetch(`https://dozy-admin.vercel.app/api/e20f258c-b623-41e1-ab41-d381b626da2b/billboards/${storeData.billboardId}`, {
+                        cache: 'no-store',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    });
+                    billboardData = await billboardRes.json();
+                    console.log("Client-side billboard:", billboardData);
+                    setBillboard(billboardData);
+                }
+
+                // Fallback: fetch categories and use first category's billboard
+                if (!billboardData) {
+                    const categoriesRes = await fetch('https://dozy-admin.vercel.app/api/e20f258c-b623-41e1-ab41-d381b626da2b/categories', {
+                        cache: 'no-store',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    });
+                    const categoriesData = await categoriesRes.json();
+                    console.log("Client-side categories:", categoriesData);
+
+                    if (categoriesData && categoriesData.length > 0) {
+                        const categoryRes = await fetch(`https://dozy-admin.vercel.app/api/e20f258c-b623-41e1-ab41-d381b626da2b/categories/${categoriesData[0].id}`, {
+                            cache: 'no-store',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            }
+                        });
+                        const categoryData = await categoryRes.json();
+                        console.log("Client-side category with billboard:", categoryData);
+                        if (categoryData?.billboard) {
+                            setBillboard(categoryData.billboard);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error("Client-side fetch error:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen luxury-emerald">
+                <div className="text-white text-2xl font-bold">Loading...</div>
+            </div>
+        );
     }
-    
-    // Fallback to the first category's billboard if no main billboard is set
-    if (!billboard) {
-        const featuredCategory = categories?.[0];
-        const categoryWithBillboard = featuredCategory ? await getCategory(featuredCategory.id) : null;
-        billboard = categoryWithBillboard?.billboard || null;
-    }
-    
-    let products = await getProducts({});
-    console.log("Products from API in main page:", products);
 
     return (
         <div className="flex flex-col luxury-emerald min-h-screen">
