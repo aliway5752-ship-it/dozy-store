@@ -8,7 +8,7 @@ import { CldUploadWidget, CloudinaryUploadWidgetResults, CloudinaryUploadWidgetI
 
 interface ImageUploadProps {
   disabled?: boolean;
-  onChange: (value: string[]) => void;
+  onChange: (value: string) => void;
   onRemove: (value: string) => void;
   value: string[];
 }
@@ -31,23 +31,22 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
       return;
     }
     
-    // Handle both single file and multiple file uploads
     const uploadInfo = info as CloudinaryUploadWidgetInfo;
     
+    // Handle both single file and multiple file uploads
     if (Array.isArray(uploadInfo)) {
-      // Multiple files uploaded
-      const newUrls = uploadInfo
-        .map((item: any) => item?.secure_url)
-        .filter((url: string) => url && url.startsWith("https://res.cloudinary.com/"));
-      
-      if (newUrls.length > 0) {
-        onChange([...value, ...newUrls]);
-      }
+      // Multiple files uploaded - process each one individually
+      uploadInfo.forEach((item: any) => {
+        const secureUrl = item?.secure_url;
+        if (secureUrl && secureUrl.startsWith("https://res.cloudinary.com/")) {
+          onChange(secureUrl);
+        }
+      });
     } else {
       // Single file uploaded
       const secureUrl = uploadInfo.secure_url;
       if (secureUrl && secureUrl.startsWith("https://res.cloudinary.com/")) {
-        onChange([...value, secureUrl]);
+        onChange(secureUrl);
       }
     }
   };
