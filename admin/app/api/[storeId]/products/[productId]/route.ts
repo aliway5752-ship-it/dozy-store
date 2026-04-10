@@ -3,6 +3,16 @@ import { auth } from '@clerk/nextjs/server'
 import { NextResponse } from "next/server"
 import { sanitizeText, toPositiveInt, toSafePrice } from "@/lib/input";
 
+const corsHeaders = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+};
+
+export async function OPTIONS() {
+    return NextResponse.json({}, { headers: corsHeaders });
+}
+
 export async function GET (
     req: Request,
     { params }: { params: Promise<{ productId: string }>}
@@ -26,16 +36,10 @@ export async function GET (
             }
         })
 
-        return NextResponse.json(product, {
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-            }
-        });
+        return NextResponse.json(product, { headers: corsHeaders });
     } catch (err) {
         console.log('[PRODUCT_GET]', err)
-        return new NextResponse('Internal error', { status: 500 })
+        return new NextResponse('Internal error', { status: 500, headers: corsHeaders })
     }
 }
 

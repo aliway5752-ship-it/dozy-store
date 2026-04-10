@@ -3,6 +3,16 @@ import { auth } from '@clerk/nextjs/server'
 import prismadb from "@/lib/prismadb";
 import { sanitizeText, toPositiveInt, toSafePrice } from "@/lib/input";
 
+const corsHeaders = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+};
+
+export async function OPTIONS() {
+    return NextResponse.json({}, { headers: corsHeaders });
+}
+
 export async function POST(
     req: Request,
     { params }: { params: Promise<{ storeId: string }> }
@@ -113,15 +123,9 @@ export async function GET(
             orderBy: { createdAt: 'desc' }
         });
 
-        return NextResponse.json(products, {
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-            }
-        });
+        return NextResponse.json(products, { headers: corsHeaders });
     } catch (err) {
         console.log(`[PRODUCTS_GET]`, err);
-        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+        return NextResponse.json({ error: "Internal server error" }, { status: 500, headers: corsHeaders });
     }
 }
