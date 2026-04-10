@@ -5,6 +5,7 @@ import getCategory from "@/actions/get-category";
 import getProducts from "@/actions/get-products";
 import ProductList from "@/components/product-list";
 
+export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 const HomePage = async () => {
