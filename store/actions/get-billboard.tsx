@@ -1,6 +1,6 @@
 import { Billboard } from "@/types";
 
-const URL = `https://dozy-admin.vercel.app/api/e20f258c-b623-41e1-ab41-d381b626da2b/billboards`
+const URL = `https://dozy-admin.vercel.app/api/05f25ff6-71b1-4de2-90a8-369b098b1f12/billboards`
 
 const getBillboard = async (id: string): Promise<Billboard | null> => {
     try {

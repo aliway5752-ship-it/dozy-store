@@ -12,7 +12,7 @@ export default clerkMiddleware(async (auth, req) => {
   const { userId } = await auth();
   if (userId) {
     try {
-      const response = await fetch(`https://dozy-admin.vercel.app/api/e20f258c-b623-41e1-ab41-d381b626da2b/profile?userId=${userId}`);
+      const response = await fetch(`https://dozy-admin.vercel.app/api/05f25ff6-71b1-4de2-90a8-369b098b1f12/profile?userId=${userId}`);
       if (response.ok) {
         const user = await response.json();
         if (user?.isBlocked) {

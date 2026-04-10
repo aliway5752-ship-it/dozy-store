@@ -19,7 +19,7 @@ const HomePage = () => {
                 console.log("Client-side fetching products...");
 
                 // Fetch products
-                const productsRes = await fetch('https://dozy-admin.vercel.app/api/e20f258c-b623-41e1-ab41-d381b626da2b/products', {
+                const productsRes = await fetch('https://dozy-admin.vercel.app/api/05f25ff6-71b1-4de2-90a8-369b098b1f12/products', {
                     cache: 'no-store',
                     headers: {
                         'Content-Type': 'application/json',
@@ -30,7 +30,7 @@ const HomePage = () => {
                 setProducts(Array.isArray(productsData) ? productsData : []);
 
                 // Fetch store to get billboardId
-                const storeRes = await fetch('https://dozy-admin.vercel.app/api/e20f258c-b623-41e1-ab41-d381b626da2b', {
+                const storeRes = await fetch('https://dozy-admin.vercel.app/api/05f25ff6-71b1-4de2-90a8-369b098b1f12', {
                     cache: 'no-store',
                     headers: {
                         'Content-Type': 'application/json',
@@ -42,7 +42,7 @@ const HomePage = () => {
                 // Fetch billboard if store has billboardId
                 let billboardData = null;
                 if (storeData?.billboardId) {
-                    const billboardRes = await fetch(`https://dozy-admin.vercel.app/api/e20f258c-b623-41e1-ab41-d381b626da2b/billboards/${storeData.billboardId}`, {
+                    const billboardRes = await fetch(`https://dozy-admin.vercel.app/api/05f25ff6-71b1-4de2-90a8-369b098b1f12/billboards/${storeData.billboardId}`, {
                         cache: 'no-store',
                         headers: {
                             'Content-Type': 'application/json',
@@ -55,7 +55,7 @@ const HomePage = () => {
 
                 // Fallback: fetch categories and use first category's billboard
                 if (!billboardData) {
-                    const categoriesRes = await fetch('https://dozy-admin.vercel.app/api/e20f258c-b623-41e1-ab41-d381b626da2b/categories', {
+                    const categoriesRes = await fetch('https://dozy-admin.vercel.app/api/05f25ff6-71b1-4de2-90a8-369b098b1f12/categories', {
                         cache: 'no-store',
                         headers: {
                             'Content-Type': 'application/json',
@@ -65,7 +65,7 @@ const HomePage = () => {
                     console.log("Client-side categories:", categoriesData);
 
                     if (categoriesData && categoriesData.length > 0) {
-                        const categoryRes = await fetch(`https://dozy-admin.vercel.app/api/e20f258c-b623-41e1-ab41-d381b626da2b/categories/${categoriesData[0].id}`, {
+                        const categoryRes = await fetch(`https://dozy-admin.vercel.app/api/05f25ff6-71b1-4de2-90a8-369b098b1f12/categories/${categoriesData[0].id}`, {
                             cache: 'no-store',
                             headers: {
                                 'Content-Type': 'application/json',
