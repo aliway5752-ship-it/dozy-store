@@ -99,6 +99,7 @@ model Order {
   address       String      @db.Text
   status        String      @default("PENDING")
   orderNumber   Int         @unique @default(autoincrement())
+  orderCode     String      @unique
   notes         String?     @db.Text
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
@@ -113,6 +114,7 @@ model Order {
   @@index([storeId])
   @@index([customerId])
   @@index([orderNumber])
+  @@index([orderCode])
   @@index([storeId, createdAt])
   @@index([storeId, isPaid, status])
 }
@@ -188,6 +190,7 @@ model User {
   email           String     @unique
   phone           String?
   profileImageUrl String?
+  isBlocked       Boolean    @default(false)
   addresses       Address[]
   wishlist        Wishlist[]
   cart            Cart?
