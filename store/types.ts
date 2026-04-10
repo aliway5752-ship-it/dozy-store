@@ -43,6 +43,7 @@ export interface Store {
     id: string;
     name: string;
     shippingPrice: number;
+    billboardId: string | null;
 }
 
 export interface Address {

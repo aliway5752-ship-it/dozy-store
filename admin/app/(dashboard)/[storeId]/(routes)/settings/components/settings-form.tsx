@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import * as z from 'zod'
-import { Store } from "@prisma/client";
+import { Store, Billboard } from "@prisma/client";
 import { Heading } from "@/components/ui/heading";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -11,6 +11,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
 import { useParams, useRouter } from 'next/navigation';
@@ -19,17 +20,19 @@ import { ApiAlert } from '@/components/ui/api-alert';
 import { useOrigin } from '@/hooks/use-origin';
 
 interface SettingsFromProps {
-    initialData: Store; 
+    initialData: Store;
+    billboards: Billboard[];
 }
 
 const formSchema = z.object({
     name: z.string().min(1),
     shippingPrice: z.coerce.number().min(0),
+    billboardId: z.string().nullable().optional(),
 })
 
 type SettingsFormValues = z.infer<typeof formSchema>;
 
-export const SettingsForm: React.FC<SettingsFromProps> = ({ initialData }) => {
+export const SettingsForm: React.FC<SettingsFromProps> = ({ initialData, billboards }) => {
 
     const params = useParams();
     const router = useRouter();
@@ -40,7 +43,11 @@ export const SettingsForm: React.FC<SettingsFromProps> = ({ initialData }) => {
 
     const form = useForm<SettingsFormValues>({
         resolver: zodResolver(formSchema),
-        defaultValues: initialData,
+        defaultValues: {
+            name: initialData.name,
+            shippingPrice: initialData.shippingPrice,
+            billboardId: initialData.billboardId || null,
+        },
     });
 
     const onSubmit = async (data: SettingsFormValues) => {
@@ -90,7 +97,7 @@ export const SettingsForm: React.FC<SettingsFromProps> = ({ initialData }) => {
                 <form onSubmit={form.handleSubmit(onSubmit)} className="w-full space-y-8">
                     <div className='grid grid-cols-3 gap-8'>
                         <FormField
-                            control={form.control} 
+                            control={form.control}
                             name="name"
                             render={({field}) => (
                                 <FormItem>
@@ -102,7 +109,7 @@ export const SettingsForm: React.FC<SettingsFromProps> = ({ initialData }) => {
                                 </FormItem>
                             )}/>
                         <FormField
-                            control={form.control} 
+                            control={form.control}
                             name="shippingPrice"
                             render={({field}) => (
                                 <FormItem>
@@ -110,6 +117,29 @@ export const SettingsForm: React.FC<SettingsFromProps> = ({ initialData }) => {
                                     <FormControl>
                                         <Input type="number" disabled={loading} placeholder='e.g. 50' {...field} />
                                     </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}/>
+                        <FormField
+                            control={form.control}
+                            name="billboardId"
+                            render={({field}) => (
+                                <FormItem>
+                                    <FormLabel>Main Billboard</FormLabel>
+                                    <Select disabled={loading} onValueChange={field.onChange} defaultValue={field.value || ""}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select a billboard" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {billboards.map((billboard) => (
+                                                <SelectItem key={billboard.id} value={billboard.id}>
+                                                    {billboard.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                     <FormMessage />
                                 </FormItem>
                             )}/>

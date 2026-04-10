@@ -12,7 +12,7 @@ export async function PATCH (
         const body = await req.json();
 
         // استلام الاسم وسعر الشحن من المدخلات
-        const { name, shippingPrice } = body;
+        const { name, shippingPrice, billboardId } = body;
 
         if (!userId) {
             return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
@@ -26,7 +26,7 @@ export async function PATCH (
             return NextResponse.json({ error: "Store id is required" }, { status: 400 });
         }
 
-        // تحديث بيانات المتجر بما فيها سعر الشحن
+        // تحديث بيانات المتجر بما فيها سعر الشحن واللوحة الإعلانية
         const store = await prismadb.store.updateMany({
             where: {
                 id: storeId,
@@ -34,7 +34,8 @@ export async function PATCH (
             },
             data: {
                 name,
-                shippingPrice: parseInt(shippingPrice) || 0 
+                shippingPrice: parseInt(shippingPrice) || 0,
+                billboardId: billboardId || null
             }
         });
 

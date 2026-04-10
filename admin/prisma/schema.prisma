@@ -14,6 +14,7 @@ model Store {
   name          String
   userId        String
   shippingPrice Int         @default(0)
+  billboardId   String?
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
   billboards    Billboard[] @relation("StoreToBillboard")
@@ -24,6 +25,7 @@ model Store {
   orders        Order[]     @relation("StoreToOrder")
 
   @@index([userId])
+  @@index([billboardId])
 }
 
 model Billboard {

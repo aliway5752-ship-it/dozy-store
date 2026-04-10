@@ -22,10 +22,19 @@ const SettingsPage = async ({ params }:{ params: Promise<{ storeId: string }> })
         redirect('/');
     }
 
+    const billboards = await prismadb.billboard.findMany({
+        where: {
+            storeId
+        },
+        orderBy: {
+            createdAt: 'desc'
+        }
+    })
+
     return (
         <div className="flex-col">
             <div className="flex-1 p-8 pt-6 space-y-4">
-                <SettingsForm initialData={store} />
+                <SettingsForm initialData={store} billboards={billboards} />
             </div>
         </div>
     )
