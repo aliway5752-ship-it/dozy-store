@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { ImagePlus, Trash } from "lucide-react";
 import Image from "next/image";
@@ -8,7 +8,7 @@ import { CldUploadWidget, CloudinaryUploadWidgetResults, CloudinaryUploadWidgetI
 
 interface ImageUploadProps {
   disabled?: boolean;
-  onChange: (value: string) => void;
+  onChange: (value: string[]) => void;
   onRemove: (value: string) => void;
   value: string[];
 }
@@ -20,34 +20,48 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   value
 }) => {
   const [isMounted, setIsMounted] = useState(false);
+  const isUpdatingRef = useRef(false);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
   const onUpload = (result: CloudinaryUploadWidgetResults) => {
+    // Prevent concurrent updates
+    if (isUpdatingRef.current) {
+      return;
+    }
+
     const info = result?.info;
     if (!info || typeof info !== 'object') {
       return;
     }
     
     const uploadInfo = info as CloudinaryUploadWidgetInfo;
+    const newUrls: string[] = [];
     
     // Handle both single file and multiple file uploads
     if (Array.isArray(uploadInfo)) {
-      // Multiple files uploaded - process each one individually
       uploadInfo.forEach((item: any) => {
         const secureUrl = item?.secure_url;
         if (secureUrl && secureUrl.startsWith("https://res.cloudinary.com/")) {
-          onChange(secureUrl);
+          newUrls.push(secureUrl);
         }
       });
     } else {
-      // Single file uploaded
       const secureUrl = uploadInfo.secure_url;
       if (secureUrl && secureUrl.startsWith("https://res.cloudinary.com/")) {
-        onChange(secureUrl);
+        newUrls.push(secureUrl);
       }
+    }
+    
+    if (newUrls.length > 0) {
+      isUpdatingRef.current = true;
+      onChange([...value, ...newUrls]);
+      // Small delay to prevent race conditions
+      setTimeout(() => {
+        isUpdatingRef.current = false;
+      }, 100);
     }
   };
 
