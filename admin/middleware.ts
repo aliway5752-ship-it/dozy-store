@@ -5,10 +5,11 @@ const ALLOWED_EMAILS = [
   'second-admin@example.com',
 ];
 
-const isPublicRoute = createRouteMatcher(['/api/webhooks(.*)']);
+const isPublicRoute = createRouteMatcher(['/api/(.*)']);
 
 export default clerkMiddleware(async (auth, req) => {
-  if (isPublicRoute(req)) {
+  // Bypass all auth checks for API routes to allow CORS preflight requests
+  if (req.nextUrl.pathname.startsWith('/api')) {
     return;
   }
 
@@ -18,7 +19,7 @@ export default clerkMiddleware(async (auth, req) => {
   if (userEmail && !ALLOWED_EMAILS.includes(userEmail)) {
     const ipAddress = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
     console.warn(`Unauthorized admin access attempt: Email=${userEmail}, IP=${ipAddress}, Path=${req.nextUrl.pathname}`);
-    
+
     return new Response('Forbidden: You are not authorized to access this admin panel', {
       status: 403,
       headers: {
