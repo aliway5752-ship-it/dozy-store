@@ -28,10 +28,8 @@ const HomePage = async () => {
         billboard = categoryWithBillboard?.billboard || null;
     }
     
-    let products = await getProducts({ isFeatured: true });
-    if (!products || products.length === 0) {
-        products = await getProducts({});
-    }
+    let products = await getProducts({});
+    console.log("Products from API in main page:", products);
 
     return (
         <div className="flex flex-col luxury-emerald min-h-screen">

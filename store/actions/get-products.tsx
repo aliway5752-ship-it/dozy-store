@@ -26,10 +26,15 @@ const getProducts = async (query: Query): Promise<Product[]> => {
         console.log("Final products URL:", url);
         const res = await fetch(url, { cache: 'no-store' });
         if (!res.ok) {
+            console.log("Products fetch failed with status:", res.status);
             return [];
         }
-        return res.json();
+        const data = await res.json();
+        console.log("Products API response:", data);
+        console.log("Products count:", Array.isArray(data) ? data.length : 'not an array');
+        return data;
     } catch (error) {
+        console.log("Products fetch error:", error);
         return [];
     }
 }
