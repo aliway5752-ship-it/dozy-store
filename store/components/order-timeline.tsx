@@ -9,13 +9,22 @@ interface OrderTimelineProps {
   orderId: string;
 }
 
-// الحالات بالترتيب مع البيانات الكاملة
+// الحالات بالترتيب مع البيانات الكاملة (Steps 1-5)
 const steps = [
+  {
+    id: "PENDING",
+    label: "Pending",
+    icon: Clock,
+    progress: 10,
+    color: "text-orange-400",
+    barColor: "bg-orange-400",
+    arabicMessage: "تم استلام طلبك، في انتظار التجهيز ⏳",
+  },
   {
     id: "PROCESSING",
     label: "Processing",
     icon: Package,
-    progress: 25,
+    progress: 35,
     color: "text-luxury-gold",
     barColor: "bg-luxury-gold",
     arabicMessage: "طلبك قيد التجهيز والتحضير",
@@ -24,7 +33,7 @@ const steps = [
     id: "SHIPPED",
     label: "Shipped",
     icon: Truck,
-    progress: 50,
+    progress: 60,
     color: "text-luxury-gold",
     barColor: "bg-luxury-gold",
     arabicMessage: "طلبك انطلق في رحلته إليك",
@@ -33,7 +42,7 @@ const steps = [
     id: "OUT_FOR_DELIVERY",
     label: "Out for Delivery",
     icon: MapPin,
-    progress: 75,
+    progress: 85,
     color: "text-luxury-gold",
     barColor: "bg-luxury-gold",
     arabicMessage: "طلبك في الطريق إليك الآن! 🚚",
@@ -43,8 +52,8 @@ const steps = [
     label: "Delivered",
     icon: CheckCircle2,
     progress: 100,
-    color: "text-luxury-gold",
-    barColor: "bg-luxury-gold",
+    color: "text-green-500",
+    barColor: "bg-green-500",
     arabicMessage: "وصل طلبك بنجاح! نتمنى لك تجربة رائعة ✅",
   },
 ];
