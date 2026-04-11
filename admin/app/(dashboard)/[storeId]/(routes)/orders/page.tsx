@@ -61,91 +61,99 @@ const OrdersPage = async ({
             );
         }
 
-        const formattedOrders: OrderColumn[] = orders.map(item => {
-            // Defensive null checks for each field - orderNumber MUST be a number
-            const safeOrderNumber = Number(item?.orderNumber) || 0;
-            const safeOrderCode = item?.orderCode || `#DZ-${safeOrderNumber || 'N/A'}`;
-            const safeCustomerName = item?.customerName || 'Guest';
-            const safePhone = item?.phone || '';
-            const safeAddress = item?.address || '';
-            const safeNotes = item?.notes || '-';
-            const safeLandmark = item?.landmark || '-';
-            const safeEmail = item?.email || '';
-            const safeBackupPhone = item?.backupPhone || '';
-            const safeStatus = item?.status || 'PENDING';
-            const safeIsPaid = item?.isPaid || false;
-            
-            // Safe date formatting
-            let safeCreatedAt = 'Unknown Date';
-            try {
-                if (item?.createdAt) {
-                    safeCreatedAt = format(new Date(item.createdAt), "MMMM do, yyyy");
-                }
-            } catch (e) {
-                console.error("[ADMIN_ORDERS] Date formatting error:", e);
-            }
-
-            // Safe order items processing
-            const safeOrderItems = Array.isArray(item?.orderItems) ? item.orderItems : [];
-            
-            // Defensive product aggregation
-            let safeProducts = '';
-            try {
-                safeProducts = safeOrderItems.reduce((acc: any[], orderItem: any) => {
-                    if (!orderItem?.product) return acc;
-                    
-                    const p = orderItem.product;
-                    const color = p?.color?.name ? ` - ${p.color.name}` : '';
-                    const size = p?.size?.value ? ` - ${p.size.value}` : '';
-                    const productName = p?.name || 'Unknown Product';
-                    const label = `${productName}${color}${size}`;
-                    
-                    const existing = acc.find((i: any) => i.label === label);
-                    const qty = orderItem?.quantity || 1;
-                    
-                    if (existing) {
-                        existing.qty += qty;
-                    } else {
-                        acc.push({ label, qty });
+        let formattedOrders: OrderColumn[] = [];
+        try {
+            formattedOrders = orders.map(item => {
+                // Defensive null checks for each field - orderNumber MUST be a number
+                const safeOrderNumber = item?.orderNumber ? Number(item.orderNumber) : 0;
+                const safeOrderCode = item?.orderCode ?? `#DZ-${safeOrderNumber || 'N/A'}`;
+                const safeCustomerName = item?.customerName ?? 'Guest';
+                const safePhone = item?.phone ?? "";
+                const safeAddress = item?.address ?? "";
+                const safeNotes = item?.notes ?? '-';
+                const safeLandmark = item?.landmark ?? '-';
+                const safeEmail = item?.email ?? '';
+                const safeBackupPhone = item?.backupPhone ?? '';
+                const safeStatus = item?.status ?? 'PENDING';
+                const safeIsPaid = item?.isPaid ?? false;
+                
+                // Safe date formatting - only format if createdAt exists
+                let safeCreatedAt = 'Unknown Date';
+                try {
+                    if (item?.createdAt && item.createdAt !== null) {
+                        safeCreatedAt = format(new Date(item.createdAt), "MMMM do, yyyy");
                     }
-                    return acc;
-                }, []).map((p: any) => `${p.label} (x${p.qty})`).join(' | ');
-            } catch (e) {
-                console.error("[ADMIN_ORDERS] Product aggregation error:", e);
-                safeProducts = 'Error loading products';
-            }
+                } catch (e) {
+                    console.error("[ADMIN_ORDERS] Date formatting error:", e);
+                    safeCreatedAt = 'Invalid Date';
+                }
 
-            // Safe total price calculation
-            let safeTotalPrice = '$0.00';
-            try {
-                const total = safeOrderItems.reduce((sum: number, orderItem: any) => {
-                    const price = Number(orderItem?.product?.price) || 0;
-                    const qty = orderItem?.quantity || 1;
-                    return sum + (price * qty);
-                }, 0);
-                safeTotalPrice = formatter.format(total);
-            } catch (e) {
-                console.error("[ADMIN_ORDERS] Price calculation error:", e);
-            }
+                // Safe order items processing
+                const safeOrderItems = Array.isArray(item?.orderItems) ? item.orderItems : [];
+                
+                // Defensive product aggregation
+                let safeProducts = '';
+                try {
+                    safeProducts = safeOrderItems.reduce((acc: any[], orderItem: any) => {
+                        if (!orderItem?.product) return acc;
+                        
+                        const p = orderItem.product;
+                        const color = p?.color?.name ? ` - ${p.color.name}` : '';
+                        const size = p?.size?.value ? ` - ${p.size.value}` : '';
+                        const productName = p?.name ?? 'Unknown Product';
+                        const label = `${productName}${color}${size}`;
+                        
+                        const existing = acc.find((i: any) => i.label === label);
+                        const qty = orderItem?.quantity ?? 1;
+                        
+                        if (existing) {
+                            existing.qty += qty;
+                        } else {
+                            acc.push({ label, qty });
+                        }
+                        return acc;
+                    }, []).map((p: any) => `${p.label} (x${p.qty})`).join(' | ');
+                } catch (e) {
+                    console.error("[ADMIN_ORDERS] Product aggregation error:", e);
+                    safeProducts = 'Error loading products';
+                }
 
-            return {
-                id: item?.id || 'unknown',
-                orderNumber: safeOrderNumber,  // This is now guaranteed to be a number
-                orderCode: safeOrderCode,
-                customerName: safeCustomerName,
-                phone: safePhone,
-                address: safeAddress,
-                notes: safeNotes,
-                landmark: safeLandmark,
-                email: safeEmail,
-                backupPhone: safeBackupPhone,
-                products: safeProducts,
-                totalPrice: safeTotalPrice,
-                isPaid: safeIsPaid,
-                status: safeStatus,
-                createdAt: safeCreatedAt,
-            };
-        });
+                // Safe total price calculation
+                let safeTotalPrice = '$0.00';
+                try {
+                    const total = safeOrderItems.reduce((sum: number, orderItem: any) => {
+                        const price = Number(orderItem?.product?.price) || 0;
+                        const qty = orderItem?.quantity ?? 1;
+                        return sum + (price * qty);
+                    }, 0);
+                    safeTotalPrice = formatter.format(total);
+                } catch (e) {
+                    console.error("[ADMIN_ORDERS] Price calculation error:", e);
+                    safeTotalPrice = '$0.00';
+                }
+
+                return {
+                    id: item?.id ?? 'unknown',
+                    orderNumber: safeOrderNumber,
+                    orderCode: safeOrderCode,
+                    customerName: safeCustomerName,
+                    phone: safePhone,
+                    address: safeAddress,
+                    notes: safeNotes,
+                    landmark: safeLandmark,
+                    email: safeEmail,
+                    backupPhone: safeBackupPhone,
+                    products: safeProducts,
+                    totalPrice: safeTotalPrice,
+                    isPaid: safeIsPaid,
+                    status: safeStatus,
+                    createdAt: safeCreatedAt,
+                };
+            });
+        } catch (e) {
+            console.error("[ADMIN_ORDERS] Critical error formatting orders:", e);
+            formattedOrders = [];
+        }
 
         return (
             <div className="flex-col">

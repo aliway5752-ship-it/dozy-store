@@ -5,7 +5,7 @@ import { CellAction } from "./cell-action"
 
 export type OrderColumn = {
   id: string;
-  orderNumber: number;
+  orderNumber: string | number;
   customerName: string;
   phone: string;
   address: string; 
@@ -26,7 +26,7 @@ export const columns: ColumnDef<OrderColumn>[] = [
   {
     accessorKey: "orderNumber",
     header: "Order Number",
-    cell: ({ row }) => <span className="font-bold text-sky-600 dark:text-sky-400">#{row?.original?.orderNumber ?? 'N/A'}</span>
+    cell: ({ row }) => <span className="font-bold text-sky-600 dark:text-sky-400">#{row?.original?.orderNumber?.toString() || 'N/A'}</span>
   },
   {
     accessorKey: "products",
