@@ -69,10 +69,28 @@ const MyOrdersPage = () => {
             'Content-Type': 'application/json',
           }
         });
+        
+        if (!res.ok) {
+          console.error(`[MY_ORDERS] API error: ${res.status}`);
+          setOrders([]);
+          return;
+        }
+        
         const data = await res.json();
-        setOrders(Array.isArray(data) ? data : []);
+        
+        // Safe Render: Ensure data is an array
+        if (!Array.isArray(data)) {
+          console.error('[MY_ORDERS] Invalid data format:', data);
+          setOrders([]);
+          return;
+        }
+        
+        // Safe Render: Filter out invalid orders
+        const validOrders = data.filter(order => order && typeof order === 'object' && order.id);
+        setOrders(validOrders);
       } catch (error) {
-        console.error('Error fetching orders:', error);
+        console.error('[MY_ORDERS] Error fetching orders:', error);
+        setOrders([]);
       } finally {
         setLoading(false);
       }
@@ -125,71 +143,83 @@ const MyOrdersPage = () => {
               </div>
             ) : (
               <div className="space-y-6">
-                {orders.map((order) => (
-                  <div
-                    key={order.id}
-                    className="bg-luxury-emerald/30 backdrop-blur-3xl rounded-3xl p-6 shadow-2xl border border-luxury-gold/10"
-                  >
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-                      <div>
-                        <div className="flex items-center gap-3">
-                          <h2 className="text-3xl font-black text-luxury-gold tracking-tight">
-                            {order.orderCode}
-                          </h2>
-                          <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-luxury-gold/20 text-luxury-gold border border-luxury-gold/30">
-                            {order.status}
-                          </span>
-                        </div>
-                        <p className="text-white/60 text-sm mt-1">
-                          {new Date(order.createdAt).toLocaleDateString('en-GB', {
-                            timeZone: 'Africa/Cairo',
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </p>
-                      </div>
-                      <OrderStatusStepper status={order.status} />
-                    </div>
+                {orders.map((order) => {
+                  // Safe Render: Defensive checks for each order field
+                  const orderCode = order?.orderCode || `#DZ-${order?.orderNumber || 'N/A'}`;
+                  const orderStatus = order?.status || 'PENDING';
+                  const orderDate = order?.createdAt ? new Date(order.createdAt).toLocaleDateString('en-GB', {
+                    timeZone: 'Africa/Cairo',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  }) : 'Unknown Date';
+                  const orderItems = Array.isArray(order?.orderItems) ? order.orderItems : [];
+                  const shippingPrice = typeof order?.shippingPrice === 'number' ? order.shippingPrice : 0;
+                  const totalAmount = typeof order?.totalAmount === 'number' ? order.totalAmount : 0;
 
-                    <div className="border-t border-luxury-gold/20 pt-4 mt-4">
-                      <h3 className="text-lg font-bold text-white mb-3">Items</h3>
-                      <div className="space-y-3">
-                        {aggregateOrderItems(order.orderItems).map((item, index) => (
-                          <div key={index} className="flex justify-between items-center text-white py-2 border-b border-white/5 last:border-0">
-                            <div className="flex items-center gap-3">
-                              <span className="font-medium">{item.product.name}</span>
-                              <span className="text-luxury-gold font-black text-sm px-2 py-0.5 bg-luxury-gold/10 rounded-full">
-                                x{item.quantity}
-                              </span>
-                            </div>
-                            <span className="font-bold text-luxury-gold">
-                              ${item.subtotal.toFixed(2)}
+                  return (
+                    <div
+                      key={order.id || Math.random()}
+                      className="bg-luxury-emerald/30 backdrop-blur-3xl rounded-3xl p-6 shadow-2xl border border-luxury-gold/10"
+                    >
+                      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+                        <div>
+                          <div className="flex items-center gap-3">
+                            <h2 className="text-3xl font-black text-luxury-gold tracking-tight">
+                              {orderCode}
+                            </h2>
+                            <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-luxury-gold/20 text-luxury-gold border border-luxury-gold/30">
+                              {orderStatus}
                             </span>
                           </div>
-                        ))}
+                          <p className="text-white/60 text-sm mt-1">
+                            {orderDate}
+                          </p>
+                        </div>
+                        <OrderStatusStepper status={orderStatus} />
                       </div>
 
-                      {/* Order Total */}
-                      <div className="mt-4 pt-4 border-t border-luxury-gold/30">
-                        <div className="flex justify-between items-center">
-                          <span className="text-white/60">Shipping</span>
-                          <span className="text-white font-medium">
-                            ${(order.shippingPrice || 0).toFixed(2)}
-                          </span>
+                      <div className="border-t border-luxury-gold/20 pt-4 mt-4">
+                        <h3 className="text-lg font-bold text-white mb-3">Items</h3>
+                        <div className="space-y-3">
+                          {orderItems.length > 0 ? aggregateOrderItems(orderItems).map((item, index) => (
+                            <div key={index} className="flex justify-between items-center text-white py-2 border-b border-white/5 last:border-0">
+                              <div className="flex items-center gap-3">
+                                <span className="font-medium">{item.product.name}</span>
+                                <span className="text-luxury-gold font-black text-sm px-2 py-0.5 bg-luxury-gold/10 rounded-full">
+                                  x{item.quantity}
+                                </span>
+                              </div>
+                              <span className="font-bold text-luxury-gold">
+                                ${item.subtotal.toFixed(2)}
+                              </span>
+                            </div>
+                          )) : (
+                            <p className="text-white/40 italic">No items found</p>
+                          )}
                         </div>
-                        <div className="flex justify-between items-center mt-2 pt-2 border-t border-white/10">
-                          <span className="text-xl font-bold text-white">Order Total</span>
-                          <span className="text-2xl font-black text-luxury-gold">
-                            ${((order.totalAmount || 0) + (order.shippingPrice || 0)).toFixed(2)}
-                          </span>
+
+                        {/* Order Total */}
+                        <div className="mt-4 pt-4 border-t border-luxury-gold/30">
+                          <div className="flex justify-between items-center">
+                            <span className="text-white/60">Shipping</span>
+                            <span className="text-white font-medium">
+                              ${shippingPrice.toFixed(2)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center mt-2 pt-2 border-t border-white/10">
+                            <span className="text-xl font-bold text-white">Order Total</span>
+                            <span className="text-2xl font-black text-luxury-gold">
+                              ${(totalAmount + shippingPrice).toFixed(2)}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
