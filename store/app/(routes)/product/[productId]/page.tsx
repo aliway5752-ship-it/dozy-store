@@ -4,6 +4,8 @@ import Gallery from "@/components/gallery";
 import Info from "@/components/info";
 import ProductList from "@/components/product-list";
 import Container from "@/components/ui/container";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -15,16 +17,25 @@ interface ProductPageProps {
 const ProductPage = async ({ params }: ProductPageProps) => {
     const { productId } = await params;
     const product = await getProduct(productId);
-    
+
     // تأكد إن المنتج موجود عشان ميرميش إيرور
     if (!product) return null;
 
     const suggestProducts = await getProducts({ categoryId: product?.category?.id });
 
-    return ( 
+    return (
         <div className="bg-white">
             <Container>
                 <div className="px-4 py-10 sm:px-6 lg:px-8">
+                    {/* Back Button */}
+                    <Link
+                        href="/"
+                        className="inline-flex items-center gap-2 text-black hover:text-gray-600 transition-colors mb-6 font-medium"
+                    >
+                        <ArrowLeft size={20} />
+                        Back
+                    </Link>
+
                     <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-8">
                         {/* إرسال مصفوفة الصور */}
                         <Gallery images={product.images} />

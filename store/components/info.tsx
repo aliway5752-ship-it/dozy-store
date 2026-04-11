@@ -115,7 +115,7 @@ const Info: React.FC<InfoProps> = ({ data }) => {
             </div>
           ) : isLowStock ? (
             <div className="flex items-center text-orange-500 font-bold text-sm bg-orange-50 px-3 py-1 rounded-full border border-orange-200 animate-pulse">
-              <AlertTriangle size={16} className="mr-1" /> Low Stock - Only {stock} left!
+              <AlertTriangle size={16} className="mr-1" /> Limited Stock
             </div>
           ) : (
             <div className="flex items-center text-green-600 font-bold text-sm bg-green-50 px-3 py-1 rounded-full border border-green-200">

@@ -70,10 +70,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ data }) => {
                         {data?.name}
                     </p>
                     <div className="flex items-center justify-between">
-                        <p className="text-[11px] text-luxury-gold uppercase tracking-[0.3em] font-black opacity-90">
+                        <p className="text-[11px] text-yellow-300 uppercase tracking-[0.3em] font-black opacity-90">
                             {data.category.name}
                         </p>
-                        <div className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-yellow-500 via-yellow-200 to-yellow-600">
+                        <div className="text-xl font-bold text-yellow-400">
                             <Currency value={data?.price} />
                         </div>
                     </div>
