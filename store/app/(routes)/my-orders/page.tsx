@@ -212,7 +212,7 @@ const MyOrdersPage = () => {
                           <div className="flex justify-between items-center mt-2 pt-2 border-t border-white/10">
                             <span className="text-xl font-bold text-white">Order Total</span>
                             <span className="text-2xl font-black text-luxury-gold">
-                              ${(totalAmount + shippingPrice).toFixed(2)}
+                              ${totalAmount.toFixed(2)}
                             </span>
                           </div>
                         </div>
