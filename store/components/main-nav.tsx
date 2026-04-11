@@ -7,6 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
 import { Heart, Package } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { motion } from 'framer-motion';
 
 interface MainNavProps {
     data: Category[] | []
@@ -46,19 +47,21 @@ const MainNav: React.FC<MainNavProps> = ({ data }) => {
     }))
 
     const additionalRoutes = [
-        { 
-            href: '/my-orders', 
-            label: 'My Orders', 
+        {
+            href: '/my-orders',
+            label: 'My Orders',
             active: pathname === '/my-orders',
             icon: Package,
-            isProtected: true
+            isProtected: true,
+            showLabel: true
         },
-        { 
-            href: '/wishlist', 
-            label: 'Wishlist', 
+        {
+            href: '/wishlist',
+            label: 'Wishlist',
             active: pathname === '/wishlist',
             icon: Heart,
-            isProtected: true
+            isProtected: true,
+            showLabel: false
         }
     ]
 
@@ -86,12 +89,33 @@ const MainNav: React.FC<MainNavProps> = ({ data }) => {
                         key={route.href}
                         onClick={(e) => handleProtectedRoute(e, route.href)}
                         className={cn(
-                            'flex items-center gap-2 text-[13px] font-bold transition-all uppercase tracking-[0.25em] drop-shadow-md hover:text-luxury-gold',
+                            'flex flex-col items-center gap-0 transition-all drop-shadow-md',
                             route.active ? 'text-luxury-gold' : 'text-white/90'
                         )}
                     >
-                        <Icon className="h-5 w-5" />
-                        <span className="hidden lg:inline">{route.label}</span>
+                        {route.label === 'Wishlist' ? (
+                            <motion.div
+                                whileHover={{ scale: 1.2 }}
+                                transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                            >
+                                <motion.div
+                                    whileHover={{ color: '#e11d48' }}
+                                    className={cn(
+                                        'transition-colors',
+                                        route.active ? 'text-luxury-gold' : 'text-white/90'
+                                    )}
+                                >
+                                    <Icon className="h-5 w-5" />
+                                </motion.div>
+                            </motion.div>
+                        ) : (
+                            <Icon className="h-4 w-4" />
+                        )}
+                        {route.showLabel && (
+                            <span className="text-[10px] font-bold uppercase tracking-wider mt-0.5">
+                                {route.label}
+                            </span>
+                        )}
                         {route.active && <div className="h-[1px] w-full bg-luxury-gold mt-1 shadow-[0_0_8px_rgba(212,175,55,0.5)]" />}
                     </button>
                 );

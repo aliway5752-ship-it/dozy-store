@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { toast } from "react-hot-toast";
+import { motion } from 'framer-motion';
 
 interface MobileNavProps {
   data: {
@@ -87,17 +88,26 @@ const MobileNav: React.FC<MobileNavProps> = ({ data }) => {
               ))}
               <button
                 onClick={(e) => handleProtectedRoute(e, '/my-orders')}
-                className="flex items-center gap-3 text-xl text-white hover:text-luxury-gold transition-colors py-2 w-full text-left"
+                className="flex flex-col items-center gap-1 text-xl text-white hover:text-luxury-gold transition-colors py-2 w-full text-left"
               >
-                <Package size={20} />
-                <span>My Orders</span>
+                <Package size={16} />
+                <span className="text-[10px] font-bold uppercase tracking-wider">My Orders</span>
               </button>
               <button
                 onClick={(e) => handleProtectedRoute(e, '/wishlist')}
-                className="flex items-center gap-3 text-xl text-white hover:text-luxury-gold transition-colors py-2 w-full text-left"
+                className="flex flex-col items-center gap-1 text-xl text-white hover:text-luxury-gold transition-colors py-2 w-full text-left"
               >
-                <Heart size={20} />
-                <span>Wishlist</span>
+                <motion.div
+                  whileHover={{ scale: 1.2 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                >
+                  <motion.div
+                    whileHover={{ color: '#e11d48' }}
+                    className="transition-colors"
+                  >
+                    <Heart size={16} />
+                  </motion.div>
+                </motion.div>
               </button>
             </div>
 
