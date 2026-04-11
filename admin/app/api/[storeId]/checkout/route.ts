@@ -214,11 +214,33 @@ export async function POST(
     );
 
   } catch (error) {
-    console.log("[CHECKOUT_POST_ERROR]", error);
-    console.log("[CHECKOUT_ERROR_DETAILS]", {
+    console.error("[CHECKOUT_POST_ERROR]", error);
+    
+    // Detailed error logging for debugging
+    const errorDetails = {
       message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined
-    });
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : 'Unknown',
+      // Prisma specific error details
+      code: (error as any)?.code,
+      meta: (error as any)?.meta,
+      clientVersion: (error as any)?.clientVersion,
+    };
+    
+    console.error("[CHECKOUT_ERROR_DETAILS]", JSON.stringify(errorDetails, null, 2));
+    
+    // Return specific error message for Prisma validation errors
+    if ((error as any)?.code === 'P2002') {
+      return NextResponse.json({ error: "Duplicate order code. Please try again." }, { status: 500, headers: corsHeaders });
+    }
+    
+    if ((error as any)?.code?.startsWith('P')) {
+      return NextResponse.json({ 
+        error: "Database error occurred", 
+        details: error instanceof Error ? error.message : 'Unknown database error'
+      }, { status: 500, headers: corsHeaders });
+    }
+    
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500, headers: corsHeaders });
   }
 }
