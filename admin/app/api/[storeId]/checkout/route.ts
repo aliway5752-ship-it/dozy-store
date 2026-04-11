@@ -191,8 +191,18 @@ export async function POST(
       // Email failure should not prevent order completion
     }
 
+    // Validate FRONTEND_STORE_URL is set
+    if (!process.env.FRONTEND_STORE_URL) {
+      console.error("[CHECKOUT_ERROR] FRONTEND_STORE_URL is not set!");
+      return NextResponse.json(
+        { error: "Server configuration error: FRONTEND_STORE_URL not set" },
+        { status: 500, headers: corsHeaders }
+      );
+    }
+
     const successUrl = `${process.env.FRONTEND_STORE_URL}/cart?success=1&orderId=${order.orderNumber}`;
     console.log("[CHECKOUT_SUCCESS_URL]", successUrl);
+    console.log("[CHECKOUT_ENV_CHECK] FRONTEND_STORE_URL:", process.env.FRONTEND_STORE_URL);
 
     return NextResponse.json(
       {

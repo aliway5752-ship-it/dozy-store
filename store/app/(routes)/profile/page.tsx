@@ -1,6 +1,7 @@
 import Container from "@/components/ui/container";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { SignOutButton } from "./components/sign-out-button";
 import OrderTimeline from "@/components/order-timeline";
 import UserProfile from "@/components/UserProfile/UserProfile";
@@ -9,6 +10,24 @@ import Currency from "@/components/ui/currency";
 export const revalidate = 0;
 
 const ProfilePage = async () => {
+    // Check if running on admin domain - skip store logic if so
+    const headersList = await headers();
+    const host = headersList.get('host') || '';
+    const isAdminDomain = host.includes('admin');
+
+    if (isAdminDomain) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-100">
+                <div className="text-center">
+                    <h1 className="text-2xl font-bold mb-4">Admin Domain Detected</h1>
+                    <p>This page is not available on the admin domain.</p>
+                    <Link href="/" className="text-blue-500 hover:underline mt-4 inline-block">
+                        Go to Dashboard
+                    </Link>
+                </div>
+            </div>
+        );
+    }
     let userId: string | null = null;
     let user: any = null;
 

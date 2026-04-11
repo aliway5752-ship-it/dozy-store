@@ -140,8 +140,22 @@ const CartPage = () => {
 
       const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/checkout`, requestData);
 
+      console.log("[CHECKOUT_RESPONSE]", response.data);
+
       if (response.data.url) {
-        window.location = response.data.url;
+        const redirectUrl = response.data.url;
+        console.log("[CHECKOUT_REDIRECT] Redirecting to:", redirectUrl);
+
+        // Ensure we're redirecting to the store domain, not admin
+        if (redirectUrl.includes('/cart?success')) {
+          window.location.assign(redirectUrl);
+        } else {
+          console.error("[CHECKOUT_REDIRECT] Invalid redirect URL:", redirectUrl);
+          toast.error("Checkout redirect error. Please contact support.");
+        }
+      } else {
+        console.error("[CHECKOUT_RESPONSE] No URL in response:", response.data);
+        toast.error("Checkout failed. No redirect URL received.");
       }
       
     } catch (error: any) {
