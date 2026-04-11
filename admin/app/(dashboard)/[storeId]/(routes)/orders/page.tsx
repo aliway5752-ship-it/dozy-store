@@ -62,9 +62,9 @@ const OrdersPage = async ({
         }
 
         const formattedOrders: OrderColumn[] = orders.map(item => {
-            // Defensive null checks for each field
-            const safeOrderNumber = item?.orderNumber || 'N/A';
-            const safeOrderCode = item?.orderCode || `#DZ-${safeOrderNumber}`;
+            // Defensive null checks for each field - orderNumber MUST be a number
+            const safeOrderNumber = Number(item?.orderNumber) || 0;
+            const safeOrderCode = item?.orderCode || `#DZ-${safeOrderNumber || 'N/A'}`;
             const safeCustomerName = item?.customerName || 'Guest';
             const safePhone = item?.phone || '';
             const safeAddress = item?.address || '';
@@ -130,7 +130,7 @@ const OrdersPage = async ({
 
             return {
                 id: item?.id || 'unknown',
-                orderNumber: safeOrderNumber,
+                orderNumber: safeOrderNumber,  // This is now guaranteed to be a number
                 orderCode: safeOrderCode,
                 customerName: safeCustomerName,
                 phone: safePhone,

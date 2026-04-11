@@ -114,7 +114,7 @@ const MobileNav: React.FC<MobileNavProps> = ({ data }) => {
             {/* Footer */}
             <div className="mt-auto pt-8 border-t border-luxury-gold/20">
               <p className="text-white/60 text-sm text-center">
-                © 2024 Dozy. All rights reserved.
+                © 2026 Dozy. All rights reserved.
               </p>
             </div>
           </div>
