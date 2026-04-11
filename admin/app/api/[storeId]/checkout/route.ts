@@ -107,6 +107,7 @@ export async function POST(
       });
 
       const nextOrderNumber = lastOrder ? lastOrder.orderNumber + 1 : 1001;
+      const orderCode = `#DZ-${nextOrderNumber}`;
 
       const createdOrder = await tx.order.create({
         data: {
@@ -114,6 +115,7 @@ export async function POST(
           isPaid: false,
           status: "PENDING",
           orderNumber: nextOrderNumber,
+          orderCode: orderCode,
           shippingPrice: store.shippingPrice, // حفظ سعر الشحن الحالي كـ Snapshot
           customerName: safeName,
           customerId: customerId || null,

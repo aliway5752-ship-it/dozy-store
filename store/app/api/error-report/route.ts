@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Initialize Resend only if API key is available
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -21,11 +22,12 @@ export async function POST(req: Request) {
     // Only send to this specific email - STRICTLY ENFORCED
     const RECIPIENT_EMAIL = "ali.way.5752@gmail.com";
 
-    if (!process.env.RESEND_API_KEY) {
-      console.error("[ERROR_REPORT_API] RESEND_API_KEY not configured");
+    if (!resend || !process.env.RESEND_API_KEY) {
+      console.warn("[ERROR_REPORT_API] RESEND_API_KEY not configured - skipping email send");
+      // Return success to not break the app, but log warning
       return NextResponse.json(
-        { error: "Email service not configured" },
-        { status: 500, headers: corsHeaders }
+        { success: true, warning: "Email service not configured" },
+        { headers: corsHeaders }
       );
     }
 
