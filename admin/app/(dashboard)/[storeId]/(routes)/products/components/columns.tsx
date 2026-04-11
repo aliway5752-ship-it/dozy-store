@@ -34,20 +34,26 @@ export const columns: ColumnDef<ProductColumn>[] = [
     header: "Price",
   },
   {
-    accessorKey: "category",
-    header: "Category",
-  },
-  {
     accessorKey: "stock",
     header: "Stock",
     cell: ({ row }) => {
       const stock = row.original.stock;
+      const badgeClass = stock === 0
+        ? 'bg-red-100 text-red-700 border-red-200'
+        : stock <= 10
+        ? 'bg-orange-100 text-orange-700 border-orange-200'
+        : 'bg-green-100 text-green-700 border-green-200';
+
       return (
-        <div className={`font-medium ${stock === 0 ? 'text-red-500' : stock <= 10 ? 'text-orange-500' : 'text-green-600'}`}>
+        <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${badgeClass}`}>
           {stock}
         </div>
       );
     }
+  },
+  {
+    accessorKey: "category",
+    header: "Category",
   },
   {
     accessorKey: "size",
