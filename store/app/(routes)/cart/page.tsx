@@ -10,6 +10,7 @@ import Container from "@/components/ui/container";
 import useCart from "@/hooks/use-cart";
 import CartItem from "./components/cart-item";
 import Summary from "./components/summary";
+import { ArrowLeft } from "lucide-react";
 
 const EGYPT_GOVERNORATES = [
   "Cairo", "Giza", "Alexandria", "Dakahlia", "Red Sea", "Beheira", "Fayoum", 
@@ -154,18 +155,16 @@ const CartPage = () => {
     <div className="bg-white">
       <Container>
         <div className="px-4 py-16 sm:px-6 lg:px-8">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-black hover:text-gray-600 transition-colors mb-6 font-medium"
+          >
+            <ArrowLeft size={20} />
+            Back
+          </Link>
+
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-3xl font-bold text-black">Shopping Cart</h1>
-            <Link
-              href="/"
-              className="flex items-center gap-2 text-black hover:text-gray-600 transition-colors font-medium"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="19" y1="12" x2="5" y2="12"></line>
-                <polyline points="12 19 5 12 12 5"></polyline>
-              </svg>
-              Continue Shopping
-            </Link>
           </div>
           <div className="mt-12 lg:grid lg:grid-cols-12 lg:items-start gap-x-12">
             <div className="lg:col-span-7">

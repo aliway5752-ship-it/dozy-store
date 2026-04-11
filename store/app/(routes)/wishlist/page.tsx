@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import Button from "@/components/ui/button";
 import { API_URL } from "@/lib/config";
+import { ArrowLeft } from "lucide-react";
 
 const WishlistPage = () => {
   const { userId } = useAuth();
@@ -42,7 +43,15 @@ const WishlistPage = () => {
   if (!userId) {
     return (
       <div className="flex items-center justify-center min-h-screen luxury-emerald">
-        <div className="text-white text-2xl font-bold">Please log in to view your wishlist</div>
+        <div className="text-center">
+          <div className="text-[#d4af37] text-2xl font-bold mb-6">Please log in to view your wishlist</div>
+          <Link
+            href="/sign-in"
+            className="inline-block bg-[#d4af37] text-black px-6 py-3 rounded-full font-medium hover:bg-[#d4af37]/90 transition-colors"
+          >
+            Login Now
+          </Link>
+        </div>
       </div>
     );
   }
@@ -51,18 +60,16 @@ const WishlistPage = () => {
     <div className="bg-white min-h-screen">
       <Container>
         <div className="px-4 py-16 sm:px-6 lg:px-8">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-black hover:text-gray-600 transition-colors mb-6 font-medium"
+          >
+            <ArrowLeft size={20} />
+            Back
+          </Link>
+
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-3xl font-bold text-black">Wishlist</h1>
-            <Link
-              href="/"
-              className="flex items-center gap-2 text-black hover:text-gray-600 transition-colors font-medium"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="19" y1="12" x2="5" y2="12"></line>
-                <polyline points="12 19 5 12 12 5"></polyline>
-              </svg>
-              Continue Shopping
-            </Link>
           </div>
           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
