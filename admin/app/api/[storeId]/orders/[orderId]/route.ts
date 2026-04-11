@@ -76,15 +76,30 @@ export async function PATCH(
       return new NextResponse("Unauthorized", { status: 403 });
     }
 
+    // First, get the current order to check if it has orderCode
+    const existingOrder = await prismadb.order.findUnique({
+      where: { id: orderId },
+      select: { orderCode: true, orderNumber: true }
+    });
+
+    if (!existingOrder) {
+      return NextResponse.json({ error: "Order not found" }, { status: 404 });
+    }
+
+    // If orderCode is missing, generate one before updating
+    let updateData: any = {
+      ...(isPaid !== undefined && { isPaid }),
+      ...(notes !== undefined && { notes }),
+      ...(status !== undefined && { status })
+    };
+    if (!existingOrder.orderCode) {
+      updateData.orderCode = `#DZ-${existingOrder.orderNumber || Date.now()}`;
+      console.log("[ORDER_STATUS_UPDATE] Generated missing orderCode:", updateData.orderCode);
+    }
+
     const order = await prismadb.order.update({
-      where: {
-        id: orderId,
-      },
-      data: {
-        ...(isPaid !== undefined && { isPaid }),
-        ...(notes !== undefined && { notes }),
-        ...(status !== undefined && { status })
-      }
+      where: { id: orderId },
+      data: updateData,
     });
 
     return NextResponse.json(order);

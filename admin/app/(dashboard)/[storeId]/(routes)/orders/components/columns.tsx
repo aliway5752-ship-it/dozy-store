@@ -26,7 +26,7 @@ export const columns: ColumnDef<OrderColumn>[] = [
   {
     accessorKey: "orderNumber",
     header: "Order Number",
-    cell: ({ row }) => <span className="font-bold text-sky-600 dark:text-sky-400">#{row.original.orderNumber}</span>
+    cell: ({ row }) => <span className="font-bold text-sky-600 dark:text-sky-400">#{row?.original?.orderNumber ?? 'N/A'}</span>
   },
   {
     accessorKey: "products",
@@ -40,20 +40,24 @@ export const columns: ColumnDef<OrderColumn>[] = [
   {
     header: "Customer Info",
     cell: ({ row }) => {
-      const customerId = row.original.customerId;
+      const customerId = row?.original?.customerId;
+      const storeId = row?.original?.storeId;
+      const customerName = row?.original?.customerName ?? "Guest";
+      const phone = row?.original?.phone ?? "";
+      
       return (
         <div className="flex flex-col text-xs gap-1">
-          {customerId ? (
+          {customerId && storeId ? (
             <button
-              onClick={() => window.open(`/admin/${row.original.storeId}/users/${customerId}`, '_blank')}
+              onClick={() => window.open(`/admin/${storeId}/users/${customerId}`, '_blank')}
               className="font-bold text-foreground text-sm hover:text-sky-600 transition-colors cursor-pointer"
             >
-            {row.original.customerName}
+            {customerName}
           </button>
           ) : (
-            <span className="font-bold text-foreground text-sm">{row.original.customerName || "Guest"}</span>
+            <span className="font-bold text-foreground text-sm">{customerName}</span>
           )}
-          <span className="text-muted-foreground">Ph: {row.original.phone}</span>
+          <span className="text-muted-foreground">Ph: {phone}</span>
         </div>
       )
     }
@@ -62,7 +66,8 @@ export const columns: ColumnDef<OrderColumn>[] = [
     header: "Notes",
     accessorKey: "notes",
     cell: ({ row }) => {
-      const notes = row.original.notes;
+      const notes = row?.original?.notes ?? "";
+      const landmark = row?.original?.landmark ?? "";
       const hasNotes = notes && notes !== "-";
 
       return (
@@ -72,12 +77,12 @@ export const columns: ColumnDef<OrderColumn>[] = [
               Notes: {notes}
             </div>
           )}
-          {row.original.landmark && row.original.landmark !== "-" && (
+          {landmark && landmark !== "-" && (
             <div className="px-2 py-1 rounded-md bg-blue-50 text-blue-800 border border-blue-100 text-[11px]">
-              Landmark: {row.original.landmark}
+              Landmark: {landmark}
             </div>
           )}
-          {!hasNotes && (!row.original.landmark || row.original.landmark === "-") && (
+          {!hasNotes && (!landmark || landmark === "-") && (
             <span className="text-gray-400 text-xs">-</span>
           )}
         </div>
@@ -92,8 +97,8 @@ export const columns: ColumnDef<OrderColumn>[] = [
     accessorKey: "isPaid",
     header: "Payment",
     cell: ({ row }) => (
-      <div className={`font-bold text-[11px] ${row.original.isPaid ? "text-green-600" : "text-red-600"}`}>
-        {row.original.isPaid ? "✓ Paid" : "✗ Unpaid"}
+      <div className={`font-bold text-[11px] ${row?.original?.isPaid ? "text-green-600" : "text-red-600"}`}>
+        {row?.original?.isPaid ? "✓ Paid" : "✗ Unpaid"}
       </div>
     )
   },
@@ -105,23 +110,29 @@ export const columns: ColumnDef<OrderColumn>[] = [
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => {
-      const s = row.original.status;
+      const s = row?.original?.status ?? 'PENDING';
+      const normalizedStatus = typeof s === 'string' ? s.toUpperCase() : 'PENDING';
+      
       return (
         <span className={`px-2 py-1 object-fit min-w-[90px] text-center inline-block rounded-md text-[10px] font-bold uppercase tracking-wider ${
-          s === 'PENDING' ? 'bg-orange-100 text-orange-700' : 
-          s === 'PROCESSING' ? 'bg-blue-100 text-blue-700' :
-          s === 'SHIPPED' ? 'bg-purple-100 text-purple-700' :
-          s === 'OUT_FOR_DELIVERY' ? 'bg-indigo-100 text-indigo-700' :
-          s === 'DELIVERED' ? 'bg-green-100 text-green-700' :
+          normalizedStatus === 'PENDING' ? 'bg-orange-100 text-orange-700' : 
+          normalizedStatus === 'PROCESSING' ? 'bg-blue-100 text-blue-700' :
+          normalizedStatus === 'SHIPPED' ? 'bg-purple-100 text-purple-700' :
+          normalizedStatus === 'OUT_FOR_DELIVERY' ? 'bg-indigo-100 text-indigo-700' :
+          normalizedStatus === 'DELIVERED' ? 'bg-green-100 text-green-700' :
           'bg-gray-100 text-gray-700'
         }`}>
-          {s}
+          {normalizedStatus}
         </span>
       )
     }
   },
   {
     id: "actions",
-    cell: ({ row }) => <CellAction data={row.original} />
+    cell: ({ row }) => {
+      const data = row?.original;
+      if (!data) return null;
+      return <CellAction data={data} />;
+    }
   }
 ];
