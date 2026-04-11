@@ -67,25 +67,27 @@ const MainNav: React.FC<MainNavProps> = ({ data }) => {
 
     return (
         <nav className='flex items-center justify-between w-full'>
-            {/* Categories on the Left */}
-            <div className='flex items-center space-x-6 lg:space-x-10'>
-                {routes.map(route => (
-                    <Link
-                        key={route.href}
-                        href={route.href}
-                        className={cn(
-                            'text-[13px] font-bold transition-all uppercase tracking-[0.25em] drop-shadow-md hover:text-luxury-gold',
-                            route.active ? 'text-luxury-gold' : 'text-white/90'
-                        )}
-                    >
-                        {route.label}
-                        {route.active && <div className="h-[1px] w-full bg-luxury-gold mt-1 shadow-[0_0_8px_rgba(212,175,55,0.5)]" />}
-                    </Link>
-                ))}
+            {/* Categories - Centered */}
+            <div className='flex-1 flex justify-center'>
+                <div className='flex items-center space-x-6 lg:space-x-10'>
+                    {routes.map(route => (
+                        <Link
+                            key={route.href}
+                            href={route.href}
+                            className={cn(
+                                'text-[13px] font-bold transition-all uppercase tracking-[0.25em] drop-shadow-md hover:text-luxury-gold',
+                                route.active ? 'text-luxury-gold' : 'text-white/90'
+                            )}
+                        >
+                            {route.label}
+                            {route.active && <div className="h-[1px] w-full bg-luxury-gold mt-1 shadow-[0_0_8px_rgba(212,175,55,0.5)]" />}
+                        </Link>
+                    ))}
+                </div>
             </div>
 
-            {/* User Icons on the Right */}
-            <div className='flex items-center space-x-6 lg:space-x-10'>
+            {/* User Icons on the Right - Equal gap */}
+            <div className='flex items-center space-x-6'>
                 {additionalRoutes.map(route => {
                     const Icon = route.icon;
                     return (

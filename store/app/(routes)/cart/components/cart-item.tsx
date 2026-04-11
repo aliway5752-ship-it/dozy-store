@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Trash, Minus, Plus } from "lucide-react";
+import { Trash, Minus, Plus, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
 
 import Currency from "@/components/ui/currency";
 import useCart from "@/hooks/use-cart";
@@ -19,9 +19,12 @@ const CartItem: React.FC<CartItemProps> = ({ data }) => {
   const onRemoveOne = () => cart.decrementItem(data.id);
 
   const totalPrice = Number(data.price) * data.quantity;
+  const stock = data?.stock ?? 0;
+  const isOutOfStock = stock === 0;
+  const isLowStock = stock > 0 && stock <= 10;
 
   return (
-    <div className="grid grid-cols-5 items-center gap-4 py-6 border-b border-gray-100">
+    <div className="grid grid-cols-5 items-start gap-4 py-6 border-b border-gray-100">
       {/* 1. صورة وتفاصيل المنتج (واخد مساحة عمودين) */}
       <div className="col-span-2 flex items-center gap-x-4">
         <div className="relative h-24 w-24 rounded-md overflow-hidden bg-gray-100">
@@ -34,10 +37,25 @@ const CartItem: React.FC<CartItemProps> = ({ data }) => {
         </div>
         <div className="flex flex-col">
           <p className="text-base font-bold text-black">{data.name}</p>
-          {/* هنا التفاصيل بالخط الصغير الرمادي زي ما طلبت */}
           <p className="text-sm text-gray-500 mt-1">
             Color: {data.color.name}, Size: {data.size.name}
           </p>
+          {/* Stock Status */}
+          <div className="flex items-center gap-x-2 mt-2">
+            {isOutOfStock ? (
+              <div className="flex items-center text-red-600 font-bold text-xs">
+                <XCircle size={14} className="mr-1" /> Out of Stock
+              </div>
+            ) : isLowStock ? (
+              <div className="flex items-center text-orange-500 font-bold text-xs">
+                <AlertTriangle size={14} className="mr-1" /> Low Stock ({stock})
+              </div>
+            ) : (
+              <div className="flex items-center text-green-600 font-bold text-xs">
+                <CheckCircle size={14} className="mr-1" /> In Stock
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -48,7 +66,7 @@ const CartItem: React.FC<CartItemProps> = ({ data }) => {
 
       {/* 3. عداد الكمية وزرار الحذف */}
       <div className="col-span-1 flex items-center gap-x-4">
-        <div className="flex items-center border border-gray-300 rounded-full px-2 py-1 bg-white">
+        <div className={`flex items-center border border-gray-300 rounded-full px-2 py-1 bg-white ${isOutOfStock ? 'opacity-50 pointer-events-none' : ''}`}>
           <button onClick={onRemoveOne} className="p-1 hover:bg-gray-100 rounded-full transition">
             <Minus size={14} className="text-gray-600" />
           </button>

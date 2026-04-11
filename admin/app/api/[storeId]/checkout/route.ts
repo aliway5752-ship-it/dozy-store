@@ -22,6 +22,8 @@ export async function POST(
     const body = await req.json();
     const { cartItems, name, phone, backupPhone, email, address, notes, landmark, customerId } = body;
 
+    console.log("[CHECKOUT_START]", { storeId, cartItemsCount: cartItems?.length, customerId });
+
     if (!storeId) {
       return NextResponse.json({ error: "Store id is required" }, { status: 400, headers: corsHeaders });
     }
@@ -53,6 +55,8 @@ export async function POST(
       return NextResponse.json({ error: "السلة غير صالحة" }, { status: 400, headers: corsHeaders });
     }
 
+    console.log("[CHECKOUT_ITEMS]", normalizedItems);
+
     const productIds = [...new Set(normalizedItems.map((item: { id: string }) => item.id))];
     const products = await prismadb.product.findMany({
       where: {
@@ -65,6 +69,8 @@ export async function POST(
         stock: true,
       },
     });
+
+    console.log("[CHECKOUT_PRODUCTS]", products);
 
     const productsMap = new Map(products.map((product) => [product.id, product]));
     for (const item of normalizedItems) {
@@ -88,6 +94,9 @@ export async function POST(
     if (!store) {
         return NextResponse.json({ error: "المتجر غير موجود" }, { status: 404, headers: corsHeaders });
     }
+
+    console.log("[CHECKOUT_STORE]", { storeId, shippingPrice: store.shippingPrice });
+    console.log("[CHECKOUT_FRONTEND_URL]", process.env.FRONTEND_STORE_URL);
 
     const order = await prismadb.$transaction(async (tx) => {
       // Get the next order number for this store
@@ -123,6 +132,8 @@ export async function POST(
         },
       });
 
+      console.log("[CHECKOUT_ORDER_CREATED]", { orderId: createdOrder.id, orderNumber: createdOrder.orderNumber });
+
       for (const item of normalizedItems) {
         await tx.product.update({
           where: { id: item.id },
@@ -134,6 +145,7 @@ export async function POST(
         });
       }
 
+      console.log("[CHECKOUT_STOCK_UPDATED]");
       return createdOrder;
     });
 
@@ -160,14 +172,18 @@ export async function POST(
       };
 
       await sendOrderConfirmationEmail(emailData);
+      console.log("[CHECKOUT_EMAIL_SENT]", { orderCode });
     } catch (emailError) {
       console.log("[CHECKOUT_EMAIL_ERROR]", emailError);
       // Email failure should not prevent order completion
     }
 
+    const successUrl = `${process.env.FRONTEND_STORE_URL}/cart?success=1&orderId=${order.orderNumber}`;
+    console.log("[CHECKOUT_SUCCESS_URL]", successUrl);
+
     return NextResponse.json(
       {
-        url: `${process.env.FRONTEND_STORE_URL}/cart?success=1&orderId=${order.orderNumber}`,
+        url: successUrl,
       },
       {
         headers: corsHeaders,
@@ -176,6 +192,10 @@ export async function POST(
 
   } catch (error) {
     console.log("[CHECKOUT_POST_ERROR]", error);
+    console.log("[CHECKOUT_ERROR_DETAILS]", {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    });
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500, headers: corsHeaders });
   }
 }
