@@ -35,6 +35,7 @@ const ProductsPage = async ({
     category: item.category.name,
     size: item.size.name,
     color: item.color.value,
+    stock: item.stock,
     createdAt: format(item.createdAt, 'MMMM do, yyyy'),
   }));
 

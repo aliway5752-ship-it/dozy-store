@@ -10,6 +10,7 @@ export type ProductColumn = {
   category: string;
   size: string;
   color: string;
+  stock: number;
   isFeatured: boolean;
   isArchived: boolean;
   createdAt: string;
@@ -35,6 +36,18 @@ export const columns: ColumnDef<ProductColumn>[] = [
   {
     accessorKey: "category",
     header: "Category",
+  },
+  {
+    accessorKey: "stock",
+    header: "Stock",
+    cell: ({ row }) => {
+      const stock = row.original.stock;
+      return (
+        <div className={`font-medium ${stock === 0 ? 'text-red-500' : stock <= 10 ? 'text-orange-500' : 'text-green-600'}`}>
+          {stock}
+        </div>
+      );
+    }
   },
   {
     accessorKey: "size",

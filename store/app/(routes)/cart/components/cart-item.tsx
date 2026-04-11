@@ -48,7 +48,7 @@ const CartItem: React.FC<CartItemProps> = ({ data }) => {
               </div>
             ) : isLowStock ? (
               <div className="flex items-center text-orange-500 font-bold text-xs">
-                <AlertTriangle size={14} className="mr-1" /> Low Stock ({stock})
+                <AlertTriangle size={14} className="mr-1" /> Limited Stock
               </div>
             ) : (
               <div className="flex items-center text-green-600 font-bold text-xs">
@@ -71,7 +71,11 @@ const CartItem: React.FC<CartItemProps> = ({ data }) => {
             <Minus size={14} className="text-gray-600" />
           </button>
           <span className="mx-3 text-sm font-medium">{data.quantity}</span>
-          <button onClick={onAddOne} className="p-1 hover:bg-gray-100 rounded-full transition">
+          <button
+            onClick={onAddOne}
+            disabled={data.quantity >= stock}
+            className="p-1 hover:bg-gray-100 rounded-full transition disabled:opacity-30 disabled:cursor-not-allowed"
+          >
             <Plus size={14} className="text-gray-600" />
           </button>
         </div>
