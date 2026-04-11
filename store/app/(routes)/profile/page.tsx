@@ -1,6 +1,6 @@
 import Container from "@/components/ui/container";
 import { auth, currentUser } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
+import Link from "next/link";
 import { SignOutButton } from "./components/sign-out-button";
 import OrderTimeline from "@/components/order-timeline";
 import UserProfile from "@/components/UserProfile/UserProfile";
@@ -18,11 +18,28 @@ const ProfilePage = async () => {
         user = await currentUser();
     } catch (error) {
         console.error("[PROFILE_PAGE] Error fetching user data:", error);
-        redirect("/sign-in");
     }
 
+    // If auth fails, show fallback UI instead of crashing
     if (!userId || !user) {
-        redirect("/sign-in");
+        return (
+            <div className="luxury-emerald min-h-screen flex items-center justify-center pt-10">
+                <Container>
+                    <div className="text-center py-20 px-4 max-w-md mx-auto">
+                        <div className="bg-white/5 backdrop-blur-xl p-8 rounded-3xl border border-white/10 shadow-2xl">
+                            <h1 className="text-2xl font-bold text-white tracking-widest uppercase mb-4">Session Error</h1>
+                            <p className="text-white/60 mb-8">We&apos;re having trouble accessing your profile. Please sign out and sign back in.</p>
+                            <Link
+                                href="/"
+                                className="inline-block bg-luxury-gold text-black px-6 py-3 rounded-full font-bold hover:bg-luxury-gold/90 transition-colors"
+                            >
+                                Go Home
+                            </Link>
+                        </div>
+                    </div>
+                </Container>
+            </div>
+        );
     }
 
     // Fetch order history

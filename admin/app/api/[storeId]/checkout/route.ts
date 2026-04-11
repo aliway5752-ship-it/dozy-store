@@ -32,16 +32,27 @@ export async function POST(
       return NextResponse.json({ error: "السلة فارغة" }, { status: 400, headers: corsHeaders });
     }
 
-    const safeName = sanitizeText(name, 100) || "Guest";
-    const safePhone = sanitizePhone(phone);
+    const safeName = sanitizeText(name, 100) || "Guest Customer";
+    const safePhone = sanitizePhone(phone) || "No Phone";
     const safeBackupPhone = sanitizePhone(backupPhone);
     const safeEmail = sanitizeEmail(email);
-    const safeAddress = sanitizeText(address, 400);
+    const safeAddress = sanitizeText(address, 400) || "No Address";
     const safeNotes = sanitizeText(notes, 500);
     const safeLandmark = sanitizeText(landmark, 200);
 
-    if (!safePhone || !safeAddress) {
-      return NextResponse.json({ error: "بيانات التواصل والعنوان مطلوبة" }, { status: 400, headers: corsHeaders });
+    // Validate required fields - must have real data not placeholders
+    if (!name || !phone || !address) {
+      return NextResponse.json(
+        { error: "Please update your profile details before ordering. Name, phone, and address are required." },
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
+    if (!safePhone || safePhone === "No Phone") {
+      return NextResponse.json(
+        { error: "Please provide a valid phone number" },
+        { status: 400, headers: corsHeaders }
+      );
     }
 
     const normalizedItems = cartItems
