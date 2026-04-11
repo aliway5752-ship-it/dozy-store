@@ -87,7 +87,7 @@ const MainNav: React.FC<MainNavProps> = ({ data }) => {
             </div>
 
             {/* User Icons on the Right - Equal gap */}
-            <div className='flex items-center space-x-6'>
+            <div className='flex items-center space-x-8'>
                 {additionalRoutes.map(route => {
                     const Icon = route.icon;
                     return (

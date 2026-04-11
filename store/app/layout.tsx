@@ -11,6 +11,9 @@ const urban = Urbanist({ subsets: ['latin'] })
 export const metadata: Metadata = {
   title: 'Dozy Store',
   description: 'Your premium fashion destination',
+  icons: {
+    icon: '/logo-final.png',
+  },
 }
 
 export const revalidate = 0;
