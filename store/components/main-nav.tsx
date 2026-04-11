@@ -66,60 +66,76 @@ const MainNav: React.FC<MainNavProps> = ({ data }) => {
     ]
 
     return (
-        // إضافة justify-center للتأكد من توسط الأقسام داخل البار
-        <nav className='flex items-center space-x-6 lg:space-x-10'>
-            {routes.map(route => (
-                <Link
-                    key={route.href}
-                    href={route.href}
-                    className={cn(
-                        'text-[13px] font-bold transition-all uppercase tracking-[0.25em] drop-shadow-md hover:text-luxury-gold',
-                        route.active ? 'text-luxury-gold' : 'text-white/90'
-                    )}
-                >
-                    {route.label}
-                    {/* خط ذهبي نحيف جداً يظهر تحت العنصر النشط فقط */}
-                    {route.active && <div className="h-[1px] w-full bg-luxury-gold mt-1 shadow-[0_0_8px_rgba(212,175,55,0.5)]" />}
-                </Link>
-            ))}
-            {additionalRoutes.map(route => {
-                const Icon = route.icon;
-                return (
-                    <button
+        <nav className='flex items-center justify-between w-full'>
+            {/* Categories on the Left */}
+            <div className='flex items-center space-x-6 lg:space-x-10'>
+                {routes.map(route => (
+                    <Link
                         key={route.href}
-                        onClick={(e) => handleProtectedRoute(e, route.href)}
+                        href={route.href}
                         className={cn(
-                            'flex flex-col items-center gap-0 transition-all drop-shadow-md',
+                            'text-[13px] font-bold transition-all uppercase tracking-[0.25em] drop-shadow-md hover:text-luxury-gold',
                             route.active ? 'text-luxury-gold' : 'text-white/90'
                         )}
                     >
-                        {route.label === 'Wishlist' ? (
-                            <motion.div
-                                whileHover={{ scale: 1.2 }}
-                                transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                            >
-                                <motion.div
-                                    whileHover={{ color: '#e11d48' }}
-                                    className={cn(
-                                        'transition-colors',
-                                        route.active ? 'text-luxury-gold' : 'text-white/90'
-                                    )}
-                                >
-                                    <Icon className="h-5 w-5" />
-                                </motion.div>
-                            </motion.div>
-                        ) : (
-                            <Icon className="h-4 w-4" />
-                        )}
-                        {route.showLabel && (
-                            <span className="text-[10px] font-bold uppercase tracking-wider mt-0.5">
-                                {route.label}
-                            </span>
-                        )}
+                        {route.label}
                         {route.active && <div className="h-[1px] w-full bg-luxury-gold mt-1 shadow-[0_0_8px_rgba(212,175,55,0.5)]" />}
-                    </button>
-                );
-            })}
+                    </Link>
+                ))}
+            </div>
+
+            {/* User Icons on the Right */}
+            <div className='flex items-center space-x-6 lg:space-x-10'>
+                {additionalRoutes.map(route => {
+                    const Icon = route.icon;
+                    return (
+                        <button
+                            key={route.href}
+                            onClick={(e) => handleProtectedRoute(e, route.href)}
+                            className={cn(
+                                'flex flex-col items-center gap-0 transition-all drop-shadow-md',
+                                route.active ? 'text-luxury-gold' : 'text-white/90'
+                            )}
+                        >
+                            {route.label === 'Wishlist' ? (
+                                <motion.div
+                                    whileHover={{ scale: 1.2 }}
+                                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                                >
+                                    <motion.div
+                                        whileHover={{ color: '#e11d48' }}
+                                        className={cn(
+                                            'transition-colors',
+                                            route.active ? 'text-luxury-gold' : 'text-white/90'
+                                        )}
+                                    >
+                                        <Icon className="h-5 w-5" />
+                                    </motion.div>
+                                </motion.div>
+                            ) : (
+                                <motion.div
+                                    animate={{
+                                        scale: [1, 1.05, 1],
+                                    }}
+                                    transition={{
+                                        duration: 2,
+                                        repeat: Infinity,
+                                        repeatDelay: 1,
+                                    }}
+                                >
+                                    <Icon className="h-4 w-4" />
+                                </motion.div>
+                            )}
+                            {route.showLabel && (
+                                <span className="text-[10px] font-bold uppercase tracking-wider mt-0.5">
+                                    {route.label}
+                                </span>
+                            )}
+                            {route.active && <div className="h-[1px] w-full bg-luxury-gold mt-1 shadow-[0_0_8px_rgba(212,175,55,0.5)]" />}
+                        </button>
+                    );
+                })}
+            </div>
         </nav>
     )
 }

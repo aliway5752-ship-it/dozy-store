@@ -72,8 +72,11 @@ export async function POST(
       if (!product) {
         return NextResponse.json({ error: "منتج غير صالح داخل السلة" }, { status: 400, headers: corsHeaders });
       }
+      if (product.stock === 0) {
+        return NextResponse.json({ error: "Wait! One or more items in your cart are no longer available." }, { status: 400, headers: corsHeaders });
+      }
       if (item.quantity > product.stock) {
-        return NextResponse.json({ error: "الكمية المطلوبة غير متاحة حاليا" }, { status: 400, headers: corsHeaders });
+        return NextResponse.json({ error: "Wait! One or more items in your cart have insufficient stock." }, { status: 400, headers: corsHeaders });
       }
     }
 

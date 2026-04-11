@@ -47,38 +47,37 @@ const WishlistPage = () => {
     );
   }
 
-  if (loading) {
-    return (
-      <div className="flex flex-col luxury-emerald min-h-screen">
-        <Container>
-          <div className="py-12 space-y-6">
-            <Skeleton className="h-12 w-48" />
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {[1, 2, 3, 4].map((i) => (
-                <Skeleton key={i} className="h-96 w-full rounded-2xl" />
+  return (
+    <div className="bg-white min-h-screen">
+      <Container>
+        <div className="px-4 py-16 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between mb-8">
+            <h1 className="text-3xl font-bold text-black">Wishlist</h1>
+            <Link
+              href="/"
+              className="flex items-center gap-2 text-black hover:text-gray-600 transition-colors font-medium"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+              </svg>
+              Continue Shopping
+            </Link>
+          </div>
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[...Array(4)].map((_, i) => (
+                <Skeleton key={i} className="h-80 w-full" />
               ))}
             </div>
-          </div>
-        </Container>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col luxury-emerald min-h-screen">
-      <Container>
-        <div className="py-12">
-          <h1 className="text-4xl font-bold text-white mb-8 uppercase tracking-wider">
-            My Wishlist
-          </h1>
-
-          {wishlist.length === 0 ? (
-            <div className="bg-luxury-emerald/30 backdrop-blur-3xl rounded-3xl p-12 shadow-2xl border border-luxury-gold/10 text-center">
-              <p className="text-white text-2xl mb-6">Your wishlist is empty</p>
-              <Link href="/">
-                <Button className="bg-luxury-gold text-black hover:bg-luxury-gold/90">
-                  Go Shopping
-                </Button>
+          ) : wishlist.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500 mb-4">Your wishlist is empty.</p>
+              <Link
+                href="/"
+                className="inline-block bg-black text-white px-6 py-3 rounded-full font-medium hover:bg-gray-800 transition-colors"
+              >
+                Go Shopping
               </Link>
             </div>
           ) : (

@@ -5,6 +5,7 @@ import axios from "axios";
 import { toast } from "react-hot-toast"; 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
+import Link from "next/link";
 import Container from "@/components/ui/container";
 import useCart from "@/hooks/use-cart";
 import CartItem from "./components/cart-item";
@@ -153,10 +154,32 @@ const CartPage = () => {
     <div className="bg-white">
       <Container>
         <div className="px-4 py-16 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-black mb-8">Shopping Cart</h1>
+          <div className="flex items-center justify-between mb-8">
+            <h1 className="text-3xl font-bold text-black">Shopping Cart</h1>
+            <Link
+              href="/"
+              className="flex items-center gap-2 text-black hover:text-gray-600 transition-colors font-medium"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+              </svg>
+              Continue Shopping
+            </Link>
+          </div>
           <div className="mt-12 lg:grid lg:grid-cols-12 lg:items-start gap-x-12">
             <div className="lg:col-span-7">
-              {cart.items.length === 0 && <p className="text-neutral-500">لا توجد منتجات في السلة.</p>}
+              {cart.items.length === 0 && (
+                <div className="text-center py-12">
+                  <p className="text-neutral-500 mb-4">Your cart is empty.</p>
+                  <Link
+                    href="/"
+                    className="inline-block bg-black text-white px-6 py-3 rounded-full font-medium hover:bg-gray-800 transition-colors"
+                  >
+                    Start Shopping
+                  </Link>
+                </div>
+              )}
               <ul className="space-y-4">
                 {cart.items.map((item) => (
                   <CartItem key={item.id} data={item} />

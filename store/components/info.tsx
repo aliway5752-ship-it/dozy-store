@@ -1,13 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ShoppingCart, Minus, Plus, AlertTriangle, CheckCircle, XCircle } from "lucide-react";
+import { ShoppingCart, Minus, Plus, AlertTriangle, CheckCircle, XCircle, Heart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@clerk/nextjs";
+import { toast } from "react-hot-toast";
 
 import { Product } from "@/types";
 import Currency from "@/components/ui/currency";
 import Button from "@/components/ui/button";
 import useCart from "@/hooks/use-cart";
+import { API_URL } from "@/lib/config";
 
 interface InfoProps {
   data: Product;
@@ -15,8 +18,11 @@ interface InfoProps {
 
 const Info: React.FC<InfoProps> = ({ data }) => {
   const cart = useCart();
+  const { userId, isSignedIn } = useAuth();
   const [quantity, setQuantity] = useState(1);
   const [showFloating, setShowFloating] = useState(false);
+  const [isInWishlist, setIsInWishlist] = useState(false);
+  const [isLoadingWishlist, setIsLoadingWishlist] = useState(false);
 
   const stock = data?.stock ?? 0;
   const isOutOfStock = stock === 0;
@@ -28,13 +34,75 @@ const Info: React.FC<InfoProps> = ({ data }) => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    if (isSignedIn && userId) {
+      checkWishlist();
+    }
+  }, [isSignedIn, userId, data.id]);
+
+  const checkWishlist = async () => {
+    try {
+      const res = await fetch(`${API_URL}/wishlist?userId=${userId}`);
+      if (res.ok) {
+        const wishlist = await res.json();
+        const exists = Array.isArray(wishlist) && wishlist.some((item: Product) => item.id === data.id);
+        setIsInWishlist(exists);
+      }
+    } catch (error) {
+      console.error('Error checking wishlist:', error);
+    }
+  };
+
+  const toggleWishlist = async () => {
+    if (!isSignedIn) {
+      toast.error('Sign in to save items to your wishlist');
+      return;
+    }
+
+    setIsLoadingWishlist(true);
+    try {
+      const method = isInWishlist ? 'DELETE' : 'POST';
+      const res = await fetch(`${API_URL}/wishlist`, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, productId: data.id }),
+      });
+
+      if (res.ok) {
+        setIsInWishlist(!isInWishlist);
+        toast.success(isInWishlist ? 'Removed from wishlist' : 'Added to wishlist');
+      } else {
+        toast.error('Failed to update wishlist');
+      }
+    } catch (error) {
+      console.error('Error toggling wishlist:', error);
+      toast.error('Failed to update wishlist');
+    } finally {
+      setIsLoadingWishlist(false);
+    }
+  };
+
   const onAddToCart = () => {
     cart.addItem(data, quantity);
   };
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-gray-900">{data.name}</h1>
+      <div className="flex items-start justify-between">
+        <h1 className="text-3xl font-bold text-gray-900">{data.name}</h1>
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={toggleWishlist}
+          disabled={isLoadingWishlist}
+          className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+        >
+          <Heart
+            size={24}
+            className={isInWishlist ? "fill-red-500 text-red-500" : "text-gray-400"}
+          />
+        </motion.button>
+      </div>
       <div className="mt-3 flex items-center justify-between">
         <div className="text-2xl text-gray-900 font-bold">
           <Currency value={data?.price} />
@@ -47,7 +115,7 @@ const Info: React.FC<InfoProps> = ({ data }) => {
             </div>
           ) : isLowStock ? (
             <div className="flex items-center text-orange-500 font-bold text-sm bg-orange-50 px-3 py-1 rounded-full border border-orange-200 animate-pulse">
-              <AlertTriangle size={16} className="mr-1" /> Low Stock ({stock})
+              <AlertTriangle size={16} className="mr-1" /> Low Stock - Only {stock} left!
             </div>
           ) : (
             <div className="flex items-center text-green-600 font-bold text-sm bg-green-50 px-3 py-1 rounded-full border border-green-200">
