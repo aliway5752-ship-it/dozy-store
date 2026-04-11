@@ -3,6 +3,9 @@ import prismadb from "@/lib/prismadb";
 import { sanitizeEmail, sanitizePhone, sanitizeText, toPositiveInt } from "@/lib/input";
 import { sendOrderConfirmationEmail } from "@/lib/resend";
 
+// HARDCODED: Storefront URL for redirect
+const FRONTEND_STORE_URL = 'https://store-dozyfashion.vercel.app';
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
@@ -118,7 +121,6 @@ export async function POST(
       });
 
       const nextOrderNumber = lastOrder ? lastOrder.orderNumber + 1 : 1001;
-      const orderCode = `#DZ-${nextOrderNumber}`;
 
       const createdOrder = await tx.order.create({
         data: {
@@ -126,7 +128,6 @@ export async function POST(
           isPaid: false,
           status: "PENDING",
           orderNumber: nextOrderNumber,
-          orderCode: orderCode,
           shippingPrice: store.shippingPrice, // حفظ سعر الشحن الحالي كـ Snapshot
           customerName: safeName,
           customerId: customerId || null,
@@ -172,7 +173,7 @@ export async function POST(
       const orderCode = `#DZ-${order.orderNumber}`;
 
       const emailData = {
-        orderCode: orderCode,
+        orderCode,
         customerName: safeName,
         customerEmail: safeEmail,
         items: orderItemsWithDetails.map(item => ({
@@ -191,18 +192,9 @@ export async function POST(
       // Email failure should not prevent order completion
     }
 
-    // Validate FRONTEND_STORE_URL is set
-    if (!process.env.FRONTEND_STORE_URL) {
-      console.error("[CHECKOUT_ERROR] FRONTEND_STORE_URL is not set!");
-      return NextResponse.json(
-        { error: "Server configuration error: FRONTEND_STORE_URL not set" },
-        { status: 500, headers: corsHeaders }
-      );
-    }
-
-    const successUrl = `${process.env.FRONTEND_STORE_URL}/cart?success=1&orderId=${order.orderNumber}`;
+    // HARDCODED: Force redirect to storefront (not admin)
+    const successUrl = `${FRONTEND_STORE_URL}/cart?success=1&orderId=${order.orderNumber}`;
     console.log("[CHECKOUT_SUCCESS_URL]", successUrl);
-    console.log("[CHECKOUT_ENV_CHECK] FRONTEND_STORE_URL:", process.env.FRONTEND_STORE_URL);
 
     return NextResponse.json(
       {
