@@ -145,7 +145,14 @@ const CartPage = () => {
       }
       
     } catch (error: any) {
-      toast.error("حدث خطأ في السيرفر");
+      const errorMessage = error?.response?.data?.error;
+      if (errorMessage?.includes("stock") || errorMessage?.includes("available") || errorMessage?.includes("insufficient")) {
+        toast.error("Requested quantity exceeds available stock");
+      } else if (errorMessage) {
+        toast.error(errorMessage);
+      } else {
+        toast.error("حدث خطأ في السيرفر");
+      }
     } finally {
       setLoading(false);
     }

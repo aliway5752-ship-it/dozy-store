@@ -9,16 +9,35 @@ import Currency from "@/components/ui/currency";
 export const revalidate = 0;
 
 const ProfilePage = async () => {
-    const { userId } = await auth();
-    const user = await currentUser();
+    let userId: string | null = null;
+    let user: any = null;
+
+    try {
+        const authData = await auth();
+        userId = authData.userId;
+        user = await currentUser();
+    } catch (error) {
+        console.error("[PROFILE_PAGE] Error fetching user data:", error);
+        redirect("/sign-in");
+    }
 
     if (!userId || !user) {
         redirect("/sign-in");
     }
 
     // Fetch order history
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders?customerId=${userId}`, { cache: 'no-store' });
-    const orders = await res.json();
+    let orders: any[] = [];
+    try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders?customerId=${userId}`, { cache: 'no-store' });
+        if (res.ok) {
+            orders = await res.json();
+        } else {
+            console.error("[PROFILE_PAGE] Failed to fetch orders:", res.status);
+        }
+    } catch (error) {
+        console.error("[PROFILE_PAGE] Error fetching orders:", error);
+        orders = [];
+    }
 
     return (
         <div className="luxury-emerald min-h-screen pt-10">

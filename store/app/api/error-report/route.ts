@@ -80,6 +80,10 @@ export async function POST(req: Request) {
     `;
 
     // Send email ONLY to ali.way.5752@gmail.com
+    console.log("[ERROR_REPORT_API] Triggering Resend email to:", RECIPIENT_EMAIL);
+    console.log("[ERROR_REPORT_API] Subject:", subject);
+    console.log("[ERROR_REPORT_API] Resend instance available:", !!resend);
+
     const result = await resend.emails.send({
       from: "Dozy Store Alerts <alerts@dozy.com>",
       to: RECIPIENT_EMAIL,
@@ -87,7 +91,7 @@ export async function POST(req: Request) {
       html: htmlContent,
     });
 
-    console.log("[ERROR_REPORT_API] Email sent successfully:", result);
+    console.log("[ERROR_REPORT_API] Email sent successfully! Result:", JSON.stringify(result, null, 2));
 
     return NextResponse.json(
       { success: true, message: "Error report sent" },
