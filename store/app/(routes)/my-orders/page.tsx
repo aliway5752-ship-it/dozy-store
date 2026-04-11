@@ -6,6 +6,7 @@ import Container from "@/components/ui/container";
 import OrderStatusStepper from "@/components/order-status-stepper";
 import { Skeleton } from "@/components/ui/skeleton";
 import { API_URL } from "@/lib/config";
+import Link from "next/link";
 
 interface Order {
   id: string;
@@ -77,47 +78,55 @@ const MyOrdersPage = () => {
   return (
     <div className="flex flex-col luxury-emerald min-h-screen">
       <Container>
-        <div className="py-12">
-          <h1 className="text-4xl font-bold text-white mb-8 uppercase tracking-wider">
-            My Orders
-          </h1>
+        <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold text-white mb-8 uppercase tracking-wider">
+              My Orders
+            </h1>
 
-          {orders.length === 0 ? (
-            <div className="bg-luxury-emerald/30 backdrop-blur-3xl rounded-3xl p-8 shadow-2xl border border-luxury-gold/10">
-              <p className="text-white text-center">No orders yet</p>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {orders.map((order) => (
-                <div
-                  key={order.id}
-                  className="bg-luxury-emerald/30 backdrop-blur-3xl rounded-3xl p-6 shadow-2xl border border-luxury-gold/10"
+            {orders.length === 0 ? (
+              <div className="bg-luxury-emerald/30 backdrop-blur-3xl rounded-3xl p-8 shadow-2xl border border-luxury-gold/10">
+                <p className="text-white text-center mb-6">No orders yet</p>
+                <Link
+                  href="/"
+                  className="inline-block bg-luxury-gold text-black px-6 py-3 rounded-full font-medium hover:bg-luxury-gold/90 transition-colors"
                 >
-                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-                    <div>
-                      <h2 className="text-2xl font-bold text-white">{order.orderCode}</h2>
-                      <p className="text-luxury-gold text-sm">
-                        {new Date(order.createdAt).toLocaleDateString()}
-                      </p>
+                  Continue Shopping
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {orders.map((order) => (
+                  <div
+                    key={order.id}
+                    className="bg-luxury-emerald/30 backdrop-blur-3xl rounded-3xl p-6 shadow-2xl border border-luxury-gold/10"
+                  >
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+                      <div>
+                        <h2 className="text-2xl font-bold text-white">{order.orderCode}</h2>
+                        <p className="text-luxury-gold text-sm">
+                          {new Date(order.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <OrderStatusStepper status={order.status} />
                     </div>
-                    <OrderStatusStepper status={order.status} />
-                  </div>
 
-                  <div className="border-t border-luxury-gold/20 pt-4 mt-4">
-                    <h3 className="text-lg font-bold text-white mb-3">Items</h3>
-                    <div className="space-y-2">
-                      {order.orderItems.map((item, index) => (
-                        <div key={index} className="flex justify-between text-white">
-                          <span>{item.product.name} x {item.quantity}</span>
-                          <span>${(Number(item.product.price) * item.quantity).toFixed(2)}</span>
-                        </div>
-                      ))}
+                    <div className="border-t border-luxury-gold/20 pt-4 mt-4">
+                      <h3 className="text-lg font-bold text-white mb-3">Items</h3>
+                      <div className="space-y-2">
+                        {order.orderItems.map((item, index) => (
+                          <div key={index} className="flex justify-between text-white">
+                            <span>{item.product.name} x {item.quantity}</span>
+                            <span>${(Number(item.product.price) * item.quantity).toFixed(2)}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </Container>
     </div>
