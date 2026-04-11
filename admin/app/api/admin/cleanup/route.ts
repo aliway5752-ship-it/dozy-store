@@ -20,16 +20,8 @@ export async function GET(req: Request) {
   try {
     console.log("[ADMIN_CLEANUP_GET] Starting corrupted orders scan...");
 
-    // Find ALL orders with null/undefined critical fields across ALL stores
-    const corruptedOrders = await prismadb.order.findMany({
-      where: {
-        OR: [
-          { orderNumber: { equals: null } },
-          { customerName: { equals: null } },
-          { customerName: { equals: "" } },
-          { createdAt: { equals: null } },
-        ],
-      },
+    // Find ALL orders and filter in JavaScript to avoid Prisma type issues
+    const allOrders = await prismadb.order.findMany({
       select: {
         id: true,
         orderNumber: true,
@@ -44,6 +36,13 @@ export async function GET(req: Request) {
         createdAt: 'desc',
       },
     });
+    
+    // Filter corrupted orders in JavaScript
+    const corruptedOrders = allOrders.filter(order =>
+      !order.orderNumber ||
+      !order.customerName ||
+      !order.createdAt
+    );
 
     console.log(`[ADMIN_CLEANUP_GET] Found ${corruptedOrders.length} corrupted orders`);
 
@@ -94,23 +93,23 @@ export async function POST(req: Request) {
       );
     }
 
-    // Step 1: Find all corrupted orders
-    const corruptedOrders = await prismadb.order.findMany({
-      where: {
-        OR: [
-          { orderNumber: { equals: null } },
-          { customerName: { equals: null } },
-          { customerName: { equals: "" } },
-          { createdAt: { equals: null } },
-        ],
-      },
+    // Step 1: Find all corrupted orders (fetch all, filter in JS)
+    const allOrders = await prismadb.order.findMany({
       select: {
         id: true,
         orderNumber: true,
         storeId: true,
         customerName: true,
+        createdAt: true,
       },
     });
+    
+    // Filter corrupted orders in JavaScript
+    const corruptedOrders = allOrders.filter(order =>
+      !order.orderNumber ||
+      !order.customerName ||
+      !order.createdAt
+    );
 
     console.log(`[ADMIN_CLEANUP_POST] Found ${corruptedOrders.length} orders to delete`);
 

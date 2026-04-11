@@ -28,24 +28,26 @@ export async function POST(
     }
 
     // Find orders with null/undefined critical fields
-    const corruptedOrders = await prismadb.order.findMany({
+    // Note: Prisma doesn't allow { field: null } syntax for non-nullable fields
+    // We fetch all orders and filter in JavaScript
+    const allOrders = await prismadb.order.findMany({
       where: {
         storeId: storeId,
-        OR: [
-          { orderCode: null },
-          { orderNumber: null },
-          { customerName: null },
-          { createdAt: null },
-        ],
       },
       select: {
         id: true,
-        orderCode: true,
         orderNumber: true,
         customerName: true,
         createdAt: true,
       },
     });
+    
+    // Filter corrupted orders in JavaScript
+    const corruptedOrders = allOrders.filter(order => 
+      !order.orderNumber || 
+      !order.customerName || 
+      !order.createdAt
+    );
 
     console.log(`[CLEANUP_ORDERS] Found ${corruptedOrders.length} corrupted orders`);
 
@@ -73,7 +75,6 @@ export async function POST(
       deleted: deleteResult.count,
       orders: corruptedOrders.map(o => ({
         id: o.id,
-        orderCode: o.orderCode,
         orderNumber: o.orderNumber,
         customerName: o.customerName,
         createdAt: o.createdAt,
@@ -102,25 +103,27 @@ export async function GET(
     }
 
     // Find orders with null/undefined critical fields
-    const corruptedOrders = await prismadb.order.findMany({
+    // Note: Prisma doesn't allow { field: null } syntax for non-nullable fields
+    // We fetch all orders and filter in JavaScript
+    const allOrders = await prismadb.order.findMany({
       where: {
         storeId: storeId,
-        OR: [
-          { orderCode: null },
-          { orderNumber: null },
-          { customerName: null },
-          { createdAt: null },
-        ],
       },
       select: {
         id: true,
-        orderCode: true,
         orderNumber: true,
         customerName: true,
         createdAt: true,
         status: true,
       },
     });
+    
+    // Filter corrupted orders in JavaScript
+    const corruptedOrders = allOrders.filter(order => 
+      !order.orderNumber || 
+      !order.customerName || 
+      !order.createdAt
+    );
 
     return NextResponse.json({
       count: corruptedOrders.length,
