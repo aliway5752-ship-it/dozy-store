@@ -25,12 +25,16 @@ export const sendOrderConfirmationEmail = async (data: OrderEmailData) => {
       return { success: false, error: 'API key not configured' };
     }
 
-    // Send email using Resend onboarding constraints
-    await resend.emails.send({
-      from: 'onboarding@resend.dev',
-      to: ['ali.way.5752@gmail.com'],
-      subject: `Order Confirmation ${data.orderCode}`,
-      html: `
+    // Send dual emails using Resend onboarding constraints
+    const emailPromises = [];
+    
+    // Primary email to ali.way.5752@gmail.com
+    emailPromises.push(
+      resend.emails.send({
+        from: 'onboarding@resend.dev',
+        to: ['ali.way.5752@gmail.com'],
+        subject: `Order Confirmation ${data.orderCode}`,
+        html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <h1 style="color: #d4af37;">Order Confirmation</h1>
           <p>Dear ${data.customerName},</p>
@@ -52,19 +56,24 @@ export const sendOrderConfirmationEmail = async (data: OrderEmailData) => {
           <p>Thank you for shopping with Dozy!</p>
         </div>
       `,
-    });
-
-    // Send copy to admin (onboarding constraints - same from address)
-    await resend.emails.send({
-      from: 'onboarding@resend.dev',
-      to: ['ali.way.5752@gmail.com'],
-      subject: `New Order ${data.orderCode}`,
-      html: `
+    })
+    );
+    
+    // Secondary email to doaasalem115@gmail.com (with error handling)
+    try {
+      emailPromises.push(
+        resend.emails.send({
+          from: 'onboarding@resend.dev',
+          to: ['doaasalem115@gmail.com'],
+          subject: `Order Confirmation ${data.orderCode}`,
+          html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-              <h1 style="color: #d4af37;">New Order Received</h1>
-              <p><strong>Order Code:</strong> ${data.orderCode}</p>
-              <p><strong>Customer:</strong> ${data.customerName}</p>
-              <p><strong>Email:</strong> ${data.customerEmail}</p>
+              <h1 style="color: #d4af37;">Order Confirmation</h1>
+              <p>Dear ${data.customerName},</p>
+              <p>Thank you for your order! Your order <strong>${data.orderCode}</strong> has been received.</p>
+              
+              <h2 style="color: #d4af37;">Order Details</h2>
+              <p><strong>Status:</strong> ${data.status}</p>
               
               <h3>Items:</h3>
               <ul>
@@ -74,9 +83,19 @@ export const sendOrderConfirmationEmail = async (data: OrderEmailData) => {
               </ul>
               
               <p><strong>Total:</strong> $${data.total.toFixed(2)}</p>
+              
+              <p>We will notify you when your order status changes.</p>
+              <p>Thank you for shopping with Dozy!</p>
             </div>
           `,
-    });
+        })
+      );
+    } catch (secondaryEmailError) {
+      console.log('[RESEND] Secondary email skipped:', secondaryEmailError);
+    }
+    
+    // Wait for all emails (primary must succeed, secondary is best-effort)
+    await Promise.allSettled(emailPromises);
 
     return { success: true };
   } catch (error) {

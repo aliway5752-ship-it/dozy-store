@@ -139,7 +139,7 @@ export async function POST(
           isPaid: false,
           status: "PENDING",
           orderNumber: nextOrderNumber,
-          orderCode, // Required field - using type assertion due to stale Prisma types
+          orderCode,
           shippingPrice: store.shippingPrice, // حفظ سعر الشحن الحالي كـ Snapshot
           customerName: safeName,
           customerId: customerId || null,
