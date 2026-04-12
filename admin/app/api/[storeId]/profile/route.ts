@@ -18,7 +18,7 @@ export async function POST(
 ) {
     try {
         const body = await req.json();
-        const { userId, phone, alternativePhone, addressLine1, addressLine2, city, state, postalCode, country } = body;
+        const { userId, phone, alternativePhone, fullName, streetName, buildingNumber, city, district, governorate, landmark } = body;
 
         if (!userId) {
             return NextResponse.json({ error: "User ID is required" }, { status: 400, headers: corsHeaders });
@@ -45,26 +45,28 @@ export async function POST(
                 await prismadb.address.update({
                     where: { id: existingAddress.id },
                     data: {
-                        addressLine1,
-                        addressLine2,
-                        city,
-                        state,
-                        postalCode,
-                        country,
-                        phone: alternativePhone || phone
+                        fullName: fullName || existingAddress.fullName,
+                        streetName: streetName || existingAddress.streetName,
+                        buildingNumber: buildingNumber || existingAddress.buildingNumber,
+                        city: city || existingAddress.city,
+                        district: district || existingAddress.district,
+                        governorate: governorate || existingAddress.governorate,
+                        landmark: landmark || existingAddress.landmark,
+                        phoneNumber: alternativePhone || phone || existingAddress.phoneNumber
                     }
                 });
             } else {
                 await prismadb.address.create({
                     data: {
                         userId: existingUser.id,
-                        addressLine1,
-                        addressLine2,
-                        city,
-                        state,
-                        postalCode,
-                        country,
-                        phone: alternativePhone || phone,
+                        fullName: fullName || "",
+                        phoneNumber: alternativePhone || phone || "",
+                        governorate: governorate || "",
+                        city: city || "",
+                        district: district || "",
+                        streetName: streetName || "",
+                        buildingNumber: buildingNumber || "",
+                        landmark: landmark || "",
                         isDefault: true
                     }
                 });
