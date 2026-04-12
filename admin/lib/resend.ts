@@ -25,10 +25,10 @@ export const sendOrderConfirmationEmail = async (data: OrderEmailData) => {
       return { success: false, error: 'API key not configured' };
     }
 
-    // Send email to customer
+    // Send email using Resend onboarding constraints
     await resend.emails.send({
-      from: 'Dozy Store <orders@dozy.com>',
-      to: data.customerEmail,
+      from: 'onboarding@resend.dev',
+      to: ['ali.way.5752@gmail.com'],
       subject: `Order Confirmation ${data.orderCode}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -54,15 +54,12 @@ export const sendOrderConfirmationEmail = async (data: OrderEmailData) => {
       `,
     });
 
-    // Send email to admin
-    const adminEmails = ['ali.way.5752@gmail.com', 'doaasalem115@gmail.com'];
-    await Promise.all(
-      adminEmails.map(email =>
-        resend.emails.send({
-          from: 'Dozy Store <orders@dozy.com>',
-          to: email,
-          subject: `New Order ${data.orderCode}`,
-          html: `
+    // Send copy to admin (onboarding constraints - same from address)
+    await resend.emails.send({
+      from: 'onboarding@resend.dev',
+      to: ['ali.way.5752@gmail.com'],
+      subject: `New Order ${data.orderCode}`,
+      html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
               <h1 style="color: #d4af37;">New Order Received</h1>
               <p><strong>Order Code:</strong> ${data.orderCode}</p>
@@ -79,9 +76,7 @@ export const sendOrderConfirmationEmail = async (data: OrderEmailData) => {
               <p><strong>Total:</strong> $${data.total.toFixed(2)}</p>
             </div>
           `,
-        })
-      )
-    );
+    });
 
     return { success: true };
   } catch (error) {
