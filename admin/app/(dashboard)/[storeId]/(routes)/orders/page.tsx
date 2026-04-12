@@ -40,7 +40,8 @@ const OrdersPage = async ({
                             }
                         }
                     }
-                }
+                },
+                addressRef: true,
             },
             orderBy: {
                 createdAt: 'desc'

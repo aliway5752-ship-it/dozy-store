@@ -96,7 +96,8 @@ model Order {
   phone         String      @default("")
   backupPhone   String      @default("")
   email         String      @default("")
-  address       String      @db.Text
+  address       String      @db.Text  // Full address snapshot at order time
+  fullAddress   String?     @db.Text  // Structured address JSON string
   status        String      @default("PENDING")
   orderNumber   Int         @unique @default(autoincrement())
   orderCode     String      @unique
@@ -104,15 +105,18 @@ model Order {
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
   customerId    String?
+  addressId     String?     // Link to Address model
   customerName  String      @default("")
   landmark      String      @default("")
   shippingPrice Int         @default(0)
   store         Store       @relation("StoreToOrder", fields: [storeId], references: [id])
   customer      User?       @relation(fields: [customerId], references: [id])
+  addressRef    Address?    @relation(fields: [addressId], references: [id])
   orderItems    OrderItem[]
 
   @@index([storeId])
   @@index([customerId])
+  @@index([addressId])
   @@index([orderNumber])
   @@index([orderCode])
   @@index([storeId, createdAt])
@@ -200,22 +204,27 @@ model User {
 }
 
 model Address {
-  id           String   @id @default(uuid())
-  userId       String
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name         String   @default("")
-  addressLine1 String
-  addressLine2 String?
-  city         String
-  state        String?
-  postalCode   String?
-  country      String   @default("Egypt")
-  isDefault    Boolean  @default(false)
-  phone        String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName      String   @default("")
+  phoneNumber   String   @default("")
+  governorate   String   @default("")
+  city          String   @default("")
+  district      String   @default("")
+  streetName    String   @default("")
+  buildingNumber String  @default("")
+  floor         String   @default("")
+  apartment     String   @default("")
+  landmark      String   @default("")
+  isDefault     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  orders        Order[]
 
   @@index([userId])
+  @@index([governorate])
+  @@index([city])
 }
 
 model Wishlist {

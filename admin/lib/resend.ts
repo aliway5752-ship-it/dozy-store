@@ -9,12 +9,27 @@ interface OrderEmailData {
   orderCode: string;
   customerName: string;
   customerEmail: string;
+  customerPhone: string;
+  address: {
+    fullName?: string;
+    phoneNumber?: string;
+    governorate?: string;
+    city?: string;
+    district?: string;
+    streetName?: string;
+    buildingNumber?: string;
+    floor?: string;
+    apartment?: string;
+    landmark?: string;
+    fullAddress?: string;
+  };
   items: {
     name: string;
     quantity: number;
     price: number;
   }[];
   total: number;
+  shippingPrice: number;
   status: string;
 }
 
@@ -43,6 +58,12 @@ export const sendOrderConfirmationEmail = async (data: OrderEmailData) => {
           <h2 style="color: #d4af37;">Order Details</h2>
           <p><strong>Status:</strong> ${data.status}</p>
           
+          <h3>Shipping Address:</h3>
+          <p><strong>Recipient:</strong> ${data.address.fullName || data.customerName}</p>
+          <p><strong>Phone:</strong> ${data.address.phoneNumber || data.customerPhone}</p>
+          <p><strong>Address:</strong> ${data.address.fullAddress || `${data.address.buildingNumber} ${data.address.streetName}, ${data.address.district}, ${data.address.city}, ${data.address.governorate}`}</p>
+          ${data.address.landmark ? `<p><strong>Landmark:</strong> ${data.address.landmark}</p>` : ''}
+          
           <h3>Items:</h3>
           <ul>
             ${data.items.map(item => `
@@ -50,6 +71,8 @@ export const sendOrderConfirmationEmail = async (data: OrderEmailData) => {
             `).join('')}
           </ul>
           
+          <p><strong>Subtotal:</strong> $${(data.total - data.shippingPrice).toFixed(2)}</p>
+          <p><strong>Shipping:</strong> $${data.shippingPrice.toFixed(2)}</p>
           <p><strong>Total:</strong> $${data.total.toFixed(2)}</p>
           
           <p>We will notify you when your order status changes.</p>

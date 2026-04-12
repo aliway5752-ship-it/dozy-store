@@ -184,16 +184,34 @@ export async function POST(
 
       const orderCode = `#DZ-${order.orderNumber}`;
 
+      // Parse full address from body if available
+      const addressData = body.fullAddress ? JSON.parse(body.fullAddress) : {};
+
       const emailData = {
         orderCode,
         customerName: safeName,
         customerEmail: safeEmail,
+        customerPhone: safePhone,
+        address: {
+          fullName: addressData.fullName || safeName,
+          phoneNumber: addressData.phoneNumber || safePhone,
+          governorate: addressData.governorate || "",
+          city: addressData.city || "",
+          district: addressData.district || "",
+          streetName: addressData.streetName || "",
+          buildingNumber: addressData.buildingNumber || "",
+          floor: addressData.floor || "",
+          apartment: addressData.apartment || "",
+          landmark: safeLandmark || addressData.landmark || "",
+          fullAddress: safeAddress
+        },
         items: orderItemsWithDetails.map(item => ({
           name: item.product.name,
           quantity: item.quantity,
           price: Number(item.product.price)
         })),
-        total: orderItemsWithDetails.reduce((sum, item) => sum + (Number(item.product.price) * item.quantity), 0),
+        total: orderItemsWithDetails.reduce((sum, item) => sum + (Number(item.product.price) * item.quantity), 0) + (store.shippingPrice || 0),
+        shippingPrice: store.shippingPrice || 0,
         status: order.status
       };
 
