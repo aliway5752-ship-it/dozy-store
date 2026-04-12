@@ -62,11 +62,20 @@ const ProfilePage = async () => {
         );
     }
 
-    // Fetch order history
+    // Fetch order history with timeout
     let orders: any[] = [];
     try {
         const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/${process.env.NEXT_PUBLIC_STORE_ID}/orders?customerId=${userId}`;
-        const res = await fetch(apiUrl, { cache: 'no-store' });
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+        const res = await fetch(apiUrl, {
+            cache: 'no-store',
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
         if (res.ok) {
             const data = await res.json();
             orders = Array.isArray(data) ? data : [];
@@ -74,7 +83,11 @@ const ProfilePage = async () => {
             console.error("[PROFILE_PAGE] Failed to fetch orders:", res.status);
         }
     } catch (error) {
-        console.error("[PROFILE_PAGE] Error fetching orders:", error);
+        if (error.name === 'AbortError') {
+            console.error("[PROFILE_PAGE] Orders fetch timed out after 10 seconds");
+        } else {
+            console.error("[PROFILE_PAGE] Error fetching orders:", error);
+        }
         orders = [];
     }
 
