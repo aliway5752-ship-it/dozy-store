@@ -32,7 +32,7 @@ export async function POST(
     // We fetch all orders and filter in JavaScript
     const allOrders = await prismadb.order.findMany({
       where: {
-        storeId: storeId,
+        storeId: storeId!, // Non-null assertion - already validated above
       },
       select: {
         id: true,
@@ -42,12 +42,14 @@ export async function POST(
       },
     });
     
-    // Filter corrupted orders in JavaScript
-    const corruptedOrders = allOrders.filter(order => 
-      !order.orderNumber || 
-      !order.customerName || 
-      !order.createdAt
-    );
+    // Filter corrupted orders in JavaScript (checking for null/undefined/empty values)
+    const corruptedOrders = allOrders.filter(order => {
+      // Check for falsy values including null, undefined, empty string, 0
+      const hasNoOrderNumber = order.orderNumber === null || order.orderNumber === undefined || order.orderNumber === 0;
+      const hasNoCustomerName = order.customerName === null || order.customerName === undefined || order.customerName === '';
+      const hasNoCreatedAt = order.createdAt === null || order.createdAt === undefined;
+      return hasNoOrderNumber || hasNoCustomerName || hasNoCreatedAt;
+    });
 
     console.log(`[CLEANUP_ORDERS] Found ${corruptedOrders.length} corrupted orders`);
 
@@ -113,7 +115,7 @@ export async function GET(
     // We fetch all orders and filter in JavaScript
     const allOrders = await prismadb.order.findMany({
       where: {
-        storeId: storeId,
+        storeId: storeId!, // Non-null assertion - already validated above
       },
       select: {
         id: true,
@@ -124,12 +126,14 @@ export async function GET(
       },
     });
     
-    // Filter corrupted orders in JavaScript
-    const corruptedOrders = allOrders.filter(order => 
-      !order.orderNumber || 
-      !order.customerName || 
-      !order.createdAt
-    );
+    // Filter corrupted orders in JavaScript (checking for null/undefined/empty values)
+    const corruptedOrders = allOrders.filter(order => {
+      // Check for falsy values including null, undefined, empty string, 0
+      const hasNoOrderNumber = order.orderNumber === null || order.orderNumber === undefined || order.orderNumber === 0;
+      const hasNoCustomerName = order.customerName === null || order.customerName === undefined || order.customerName === '';
+      const hasNoCreatedAt = order.createdAt === null || order.createdAt === undefined;
+      return hasNoOrderNumber || hasNoCustomerName || hasNoCreatedAt;
+    });
 
     return NextResponse.json({
       count: corruptedOrders.length,
