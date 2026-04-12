@@ -88,14 +88,23 @@ export async function POST(
 
     const productsMap = new Map(products.map((product) => [product.id, product]));
     for (const item of normalizedItems) {
-      const product = productsMap.get(item.id);
+      const product = await prismadb.product.findUnique({
+        where: { id: item.id },
+        select: {
+          id: true,
+          stock: true,
+        },
+      });
+
       if (!product) {
         return NextResponse.json({ error: "منتج غير صالح داخل السلة" }, { status: 400, headers: corsHeaders });
       }
-      if (product.stock === 0) {
+      // Safety check: handle null/undefined stock as 0
+      const currentStock = product.stock ?? 0;
+      if (currentStock === 0) {
         return NextResponse.json({ error: "Wait! One or more items in your cart are no longer available." }, { status: 400, headers: corsHeaders });
       }
-      if (item.quantity > product.stock) {
+      if (item.quantity > currentStock) {
         return NextResponse.json({ error: "Wait! One or more items in your cart have insufficient stock." }, { status: 400, headers: corsHeaders });
       }
     }
@@ -121,7 +130,6 @@ export async function POST(
       });
 
       const nextOrderNumber = lastOrder ? lastOrder.orderNumber + 1 : 1001;
-      const orderCode = `#DZ-${nextOrderNumber}`;
 
       const createdOrder = await tx.order.create({
         data: {
@@ -129,7 +137,7 @@ export async function POST(
           isPaid: false,
           status: "PENDING",
           orderNumber: nextOrderNumber,
-          orderCode,
+          // Note: orderCode is generated automatically by DB or trigger
           shippingPrice: store.shippingPrice, // حفظ سعر الشحن الحالي كـ Snapshot
           customerName: safeName,
           customerId: customerId || null,
