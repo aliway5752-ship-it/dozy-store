@@ -14,10 +14,10 @@ export async function OPTIONS() {
 // GET /api/[storeId]/addresses?userId=xxx
 export async function GET(
   req: Request,
-  { params }: { params: { storeId: string } }
+  { params }: { params: Promise<{ storeId: string }> }
 ) {
   try {
-    const { storeId } = params;
+    const { storeId } = await params;
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get("userId");
 
@@ -44,10 +44,10 @@ export async function GET(
 // POST /api/[storeId]/addresses
 export async function POST(
   req: Request,
-  { params }: { params: { storeId: string } }
+  { params }: { params: Promise<{ storeId: string }> }
 ) {
   try {
-    const { storeId } = params;
+    const { storeId } = await params;
     const body = await req.json();
     
     const {
@@ -115,10 +115,10 @@ export async function POST(
 // PUT /api/[storeId]/addresses
 export async function PUT(
   req: Request,
-  { params }: { params: { storeId: string } }
+  { params }: { params: Promise<{ storeId: string }> }
 ) {
   try {
-    const { storeId } = params;
+    const { storeId } = await params;
     const body = await req.json();
     
     const {
@@ -176,10 +176,10 @@ export async function PUT(
 // DELETE /api/[storeId]/addresses?id=xxx
 export async function DELETE(
   req: Request,
-  { params }: { params: { storeId: string } }
+  { params }: { params: Promise<{ storeId: string }> }
 ) {
   try {
-    const { storeId } = params;
+    const { storeId } = await params;
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
 
