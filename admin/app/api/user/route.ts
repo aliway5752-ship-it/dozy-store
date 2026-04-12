@@ -54,14 +54,14 @@ export async function PATCH(req: Request) {
           id: body.addressId || "new-address",
         },
         update: {
-          addressLine1: address,
+          streetName: address,
         },
         create: {
           userId: user.id,
-          addressLine1: address,
+          streetName: address,
           city: "Cairo", // Default
           isDefault: true,
-          name: "Home",
+          fullName: body.fullName || "Home",
         }
       });
     }
