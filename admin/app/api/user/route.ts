@@ -32,7 +32,7 @@ export async function PATCH(req: Request) {
     const { userId: clerkId } = await auth();
     const body = await req.json();
 
-    const { firstName, lastName, phone, address, profileImageUrl } = body;
+    const { firstName, lastName, phone, address, profileImageUrl, fullName, governorate, city, district, buildingNumber, landmark } = body;
 
     if (!clerkId) {
       return new NextResponse("Unauthorized", { status: 401 });
@@ -55,13 +55,25 @@ export async function PATCH(req: Request) {
         },
         update: {
           streetName: address,
+          fullName: fullName || undefined,
+          governorate: governorate || undefined,
+          city: city || undefined,
+          district: district || undefined,
+          buildingNumber: buildingNumber || undefined,
+          landmark: landmark || undefined,
+          phoneNumber: phone || undefined,
         },
         create: {
           userId: user.id,
           streetName: address,
-          city: "Cairo", // Default
+          fullName: fullName || "Home",
+          governorate: governorate || "",
+          city: city || "Cairo",
+          district: district || "",
+          buildingNumber: buildingNumber || "",
+          landmark: landmark || "",
+          phoneNumber: phone || "",
           isDefault: true,
-          fullName: body.fullName || "Home",
         }
       });
     }

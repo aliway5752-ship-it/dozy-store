@@ -65,9 +65,11 @@ const ProfilePage = async () => {
     // Fetch order history
     let orders: any[] = [];
     try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders?customerId=${userId}`, { cache: 'no-store' });
+        const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/${process.env.NEXT_PUBLIC_STORE_ID}/orders?customerId=${userId}`;
+        const res = await fetch(apiUrl, { cache: 'no-store' });
         if (res.ok) {
-            orders = await res.json();
+            const data = await res.json();
+            orders = Array.isArray(data) ? data : [];
         } else {
             console.error("[PROFILE_PAGE] Failed to fetch orders:", res.status);
         }

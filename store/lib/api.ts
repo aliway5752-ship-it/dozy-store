@@ -23,6 +23,12 @@ export const updateUser = async (data: {
     address?: string;
     addressId?: string;
     profileImageUrl?: string | null;
+    fullName?: string;
+    governorate?: string;
+    city?: string;
+    district?: string;
+    buildingNumber?: string;
+    landmark?: string;
 }): Promise<void> => {
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_ADMIN_URL}/api/user`, {

@@ -19,6 +19,12 @@ const UserProfile = () => {
     lastName: "",
     phone: "",
     address: "",
+    fullName: "",
+    governorate: "",
+    city: "",
+    district: "",
+    buildingNumber: "",
+    landmark: "",
   });
 
   useEffect(() => {
@@ -28,11 +34,18 @@ const UserProfile = () => {
           const data = await fetchUser();
           if (data) {
             setProfileData(data);
+            const defaultAddr = data.addresses?.[0];
             setFormData({
-              firstName: data.firstName || "",
-              lastName: data.lastName || "",
-              phone: data.phone || "",
-              address: data.addresses?.[0]?.streetName || "",
+              firstName: data?.firstName || "",
+              lastName: data?.lastName || "",
+              phone: defaultAddr?.phoneNumber || data?.phone || "",
+              address: defaultAddr?.streetName || "",
+              fullName: defaultAddr?.fullName || "",
+              governorate: defaultAddr?.governorate || "",
+              city: defaultAddr?.city || "",
+              district: defaultAddr?.district || "",
+              buildingNumber: defaultAddr?.buildingNumber || "",
+              landmark: defaultAddr?.landmark || "",
             });
           }
         } catch (error) {
@@ -55,6 +68,12 @@ const UserProfile = () => {
         phone: formData.phone,
         address: formData.address,
         addressId: profileData?.addresses?.[0]?.id,
+        fullName: formData.fullName,
+        governorate: formData.governorate,
+        city: formData.city,
+        district: formData.district,
+        buildingNumber: formData.buildingNumber,
+        landmark: formData.landmark,
       });
       toast.success("Profile updated successfully");
       setIsEditing(false);
@@ -72,6 +91,14 @@ const UserProfile = () => {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-luxury-gold" />
+      </div>
+    );
+  }
+
+  if (!profileData) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-white/60">Unable to load profile data</p>
       </div>
     );
   }
