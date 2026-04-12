@@ -13,12 +13,13 @@ const OnboardingPage = () => {
   const [formData, setFormData] = useState({
     phone: "",
     alternativePhone: "",
-    addressLine1: "",
-    addressLine2: "",
+    fullName: "",
+    streetName: "",
+    buildingNumber: "",
     city: "",
-    state: "",
-    postalCode: "",
-    country: "Egypt",
+    district: "",
+    governorate: "",
+    landmark: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,34 +96,50 @@ const OnboardingPage = () => {
 
               <div>
                 <label className="block text-white text-sm font-bold mb-2 uppercase tracking-wider">
-                  Address Line 1
+                  Full Name
                 </label>
                 <input
                   type="text"
-                  name="addressLine1"
-                  value={formData.addressLine1}
+                  name="fullName"
+                  value={formData.fullName}
                   onChange={handleChange}
                   required
                   className="w-full px-4 py-3 rounded-xl bg-luxury-black/50 border border-luxury-gold/20 text-white focus:outline-none focus:border-luxury-gold transition-colors"
-                  placeholder="Street address, building number"
+                  placeholder="Recipient full name"
                 />
               </div>
 
               <div>
                 <label className="block text-white text-sm font-bold mb-2 uppercase tracking-wider">
-                  Address Line 2 (Optional)
+                  Street Name
                 </label>
                 <input
                   type="text"
-                  name="addressLine2"
-                  value={formData.addressLine2}
+                  name="streetName"
+                  value={formData.streetName}
                   onChange={handleChange}
+                  required
                   className="w-full px-4 py-3 rounded-xl bg-luxury-black/50 border border-luxury-gold/20 text-white focus:outline-none focus:border-luxury-gold transition-colors"
-                  placeholder="Apartment, floor, etc."
+                  placeholder="Street name"
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-white text-sm font-bold mb-2 uppercase tracking-wider">
+                    Building Number
+                  </label>
+                  <input
+                    type="text"
+                    name="buildingNumber"
+                    value={formData.buildingNumber}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-3 rounded-xl bg-luxury-black/50 border border-luxury-gold/20 text-white focus:outline-none focus:border-luxury-gold transition-colors"
+                    placeholder="Building number"
+                  />
+                </div>
+
                 <div>
                   <label className="block text-white text-sm font-bold mb-2 uppercase tracking-wider">
                     City
@@ -137,49 +154,78 @@ const OnboardingPage = () => {
                     placeholder="Cairo"
                   />
                 </div>
-
-                <div>
-                  <label className="block text-white text-sm font-bold mb-2 uppercase tracking-wider">
-                    State/Province
-                  </label>
-                  <input
-                    type="text"
-                    name="state"
-                    value={formData.state}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-xl bg-luxury-black/50 border border-luxury-gold/20 text-white focus:outline-none focus:border-luxury-gold transition-colors"
-                    placeholder="Cairo Governorate"
-                  />
-                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-white text-sm font-bold mb-2 uppercase tracking-wider">
-                    Postal Code
+                    District
                   </label>
                   <input
                     type="text"
-                    name="postalCode"
-                    value={formData.postalCode}
+                    name="district"
+                    value={formData.district}
                     onChange={handleChange}
                     className="w-full px-4 py-3 rounded-xl bg-luxury-black/50 border border-luxury-gold/20 text-white focus:outline-none focus:border-luxury-gold transition-colors"
-                    placeholder="12345"
+                    placeholder="Nasr City"
                   />
                 </div>
 
                 <div>
                   <label className="block text-white text-sm font-bold mb-2 uppercase tracking-wider">
-                    Country
+                    Governorate
                   </label>
-                  <input
-                    type="text"
-                    name="country"
-                    value={formData.country}
-                    onChange={handleChange}
+                  <select
+                    name="governorate"
+                    value={formData.governorate}
+                    onChange={(e) => setFormData({ ...formData, governorate: e.target.value })}
+                    required
                     className="w-full px-4 py-3 rounded-xl bg-luxury-black/50 border border-luxury-gold/20 text-white focus:outline-none focus:border-luxury-gold transition-colors"
-                  />
+                  >
+                    <option value="">Select Governorate</option>
+                    <option value="Cairo">Cairo</option>
+                    <option value="Giza">Giza</option>
+                    <option value="Alexandria">Alexandria</option>
+                    <option value="Qalyubia">Qalyubia</option>
+                    <option value="Sharqia">Sharqia</option>
+                    <option value="Dakahlia">Dakahlia</option>
+                    <option value="Beheira">Beheira</option>
+                    <option value="Kafr El Sheikh">Kafr El Sheikh</option>
+                    <option value="Gharbia">Gharbia</option>
+                    <option value="Monufia">Monufia</option>
+                    <option value="Damietta">Damietta</option>
+                    <option value="Port Said">Port Said</option>
+                    <option value="Ismailia">Ismailia</option>
+                    <option value="Suez">Suez</option>
+                    <option value="North Sinai">North Sinai</option>
+                    <option value="South Sinai">South Sinai</option>
+                    <option value="Faiyum">Faiyum</option>
+                    <option value="Beni Suef">Beni Suef</option>
+                    <option value="Minya">Minya</option>
+                    <option value="Assiut">Assiut</option>
+                    <option value="Sohag">Sohag</option>
+                    <option value="Qena">Qena</option>
+                    <option value="Luxor">Luxor</option>
+                    <option value="Aswan">Aswan</option>
+                    <option value="Red Sea">Red Sea</option>
+                    <option value="New Valley">New Valley</option>
+                    <option value="Matrouh">Matrouh</option>
+                  </select>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-white text-sm font-bold mb-2 uppercase tracking-wider">
+                  Landmark (Optional)
+                </label>
+                <input
+                  type="text"
+                  name="landmark"
+                  value={formData.landmark}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 rounded-xl bg-luxury-black/50 border border-luxury-gold/20 text-white focus:outline-none focus:border-luxury-gold transition-colors"
+                  placeholder="Near mosque, behind mall, etc."
+                />
               </div>
 
               <button

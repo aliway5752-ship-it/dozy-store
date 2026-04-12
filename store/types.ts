@@ -48,15 +48,17 @@ export interface Store {
 
 export interface Address {
   id: string;
-  name: string;
-  addressLine1: string;
-  addressLine2?: string;
+  fullName: string;
+  phoneNumber: string;
+  governorate: string;
   city: string;
-  state?: string;
-  postalCode?: string;
-  country: string;
+  district: string;
+  streetName: string;
+  buildingNumber: string;
+  floor: string;
+  apartment: string;
+  landmark: string;
   isDefault: boolean;
-  phone?: string;
 }
 
 export interface User {

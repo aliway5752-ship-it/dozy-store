@@ -89,10 +89,11 @@ export async function POST(req: Request) {
          await prismadb.address.create({
             data: {
                userId: newUser.id,
-               name: "Default Address",
-               addressLine1: "",
+               fullName: `${firstName} ${lastName}`.trim() || "Default Name",
+               streetName: "",
+               buildingNumber: "",
                city: "",
-               country: "Egypt",
+               governorate: "",
                isDefault: true,
             },
          });

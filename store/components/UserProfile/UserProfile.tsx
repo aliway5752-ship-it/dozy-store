@@ -32,7 +32,7 @@ const UserProfile = () => {
               firstName: data.firstName || "",
               lastName: data.lastName || "",
               phone: data.phone || "",
-              address: data.addresses?.[0]?.addressLine1 || "",
+              address: data.addresses?.[0]?.streetName || "",
             });
           }
         } catch (error) {
