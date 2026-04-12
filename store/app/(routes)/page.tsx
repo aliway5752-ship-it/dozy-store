@@ -9,9 +9,10 @@ import { Product, Billboard as BillboardType, Category } from "@/types";
 import { API_URL } from "@/lib/config";
 
 const HomePage = () => {
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [products, setProducts] = useState<Product[]>([]);
     const [billboard, setBillboard] = useState<BillboardType | null>(null);
-    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -19,7 +20,7 @@ const HomePage = () => {
                 setLoading(true);
                 console.log("Client-side fetching products...");
 
-                // Fetch products
+                // Fetch all products (not just featured)
                 const productsRes = await fetch(`${API_URL}/products`, {
                     cache: 'no-store',
                     headers: {
@@ -79,8 +80,9 @@ const HomePage = () => {
                         }
                     }
                 }
-            } catch (error) {
-                console.error("Client-side fetch error:", error);
+            } catch (err) {
+                console.error("[HOME_PAGE] Error fetching products:", err);
+                setError("Failed to load products. Please try again later.");
             } finally {
                 setLoading(false);
             }
@@ -103,6 +105,25 @@ const HomePage = () => {
                                 ))}
                             </div>
                         </div>
+                    </div>
+                </Container>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex flex-col luxury-emerald min-h-screen items-center justify-center">
+                <Container>
+                    <div className="text-center py-20">
+                        <h2 className="text-2xl font-bold text-red-500 mb-4">Error Loading Products</h2>
+                        <p className="text-white/60 mb-6">{error}</p>
+                        <button 
+                            onClick={() => window.location.reload()}
+                            className="px-6 py-2 bg-luxury-gold text-black rounded-lg hover:bg-luxury-gold/80"
+                        >
+                            Retry
+                        </button>
                     </div>
                 </Container>
             </div>
