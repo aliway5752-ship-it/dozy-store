@@ -32,9 +32,9 @@ const ProductsPage = async ({
     isFeatured: item.isFeatured,
     isArchived: item.isArchived,
     price: formatter.format(item.price.toNumber()),
-    category: item.category.name,
-    size: item.size.name,
-    color: item.color.value,
+    category: item?.category?.name || "No Category",
+    size: item?.size?.name || "N/A",
+    color: item?.color?.value || "#ccc",
     stock: item.stock,
     createdAt: format(item.createdAt, 'MMMM do, yyyy'),
   }));

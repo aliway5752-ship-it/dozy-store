@@ -59,20 +59,26 @@ export async function POST(
       });
     }
 
-    // Delete corrupted orders
-    const deleteResult = await prismadb.order.deleteMany({
-      where: {
-        id: {
-          in: corruptedOrders.map(o => o.id),
+    // Delete corrupted orders by ID
+    const idsToDelete = corruptedOrders.map(o => o.id);
+    let deletedCount = 0;
+    
+    if (idsToDelete.length > 0) {
+      const deleteResult = await prismadb.order.deleteMany({
+        where: {
+          id: {
+            in: idsToDelete,
+          },
         },
-      },
-    });
+      });
+      deletedCount = deleteResult.count;
+    }
 
-    console.log(`[CLEANUP_ORDERS] Deleted ${deleteResult.count} orders`);
+    console.log(`[CLEANUP_ORDERS] Deleted ${deletedCount} orders`);
 
     return NextResponse.json({
-      message: `Successfully deleted ${deleteResult.count} corrupted orders`,
-      deleted: deleteResult.count,
+      message: `Successfully deleted ${deletedCount} corrupted orders`,
+      deleted: deletedCount,
       orders: corruptedOrders.map(o => ({
         id: o.id,
         orderNumber: o.orderNumber,
