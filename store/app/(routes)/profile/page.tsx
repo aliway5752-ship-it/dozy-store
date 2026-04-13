@@ -64,10 +64,11 @@ const ProfilePage = async () => {
 
     // Fetch order history with timeout
     let orders: any[] = [];
+    let ordersError: string | null = null;
     try {
         const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/${process.env.NEXT_PUBLIC_STORE_ID}/orders?customerId=${userId}`;
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
 
         const res = await fetch(apiUrl, {
             cache: 'no-store',
@@ -81,12 +82,15 @@ const ProfilePage = async () => {
             orders = Array.isArray(data) ? data : [];
         } else {
             console.error("[PROFILE_PAGE] Failed to fetch orders:", res.status);
+            ordersError = "Service temporarily unavailable. Please try again later.";
         }
     } catch (error) {
         if (error.name === 'AbortError') {
-            console.error("[PROFILE_PAGE] Orders fetch timed out after 10 seconds");
+            console.error("[PROFILE_PAGE] Orders fetch timed out after 5 seconds");
+            ordersError = "Service temporarily unavailable. Please try again later.";
         } else {
             console.error("[PROFILE_PAGE] Error fetching orders:", error);
+            ordersError = "Service temporarily unavailable. Please try again later.";
         }
         orders = [];
     }
@@ -124,7 +128,11 @@ const ProfilePage = async () => {
                             <div className="h-[1px] flex-1 bg-white/10" />
                         </h2>
                         
-                        {orders.length === 0 ? (
+                        {ordersError ? (
+                            <div className="bg-white/5 backdrop-blur-md p-10 rounded-3xl border border-white/10 text-center">
+                                <p className="text-white/60 text-lg italic tracking-wide">{ordersError}</p>
+                            </div>
+                        ) : orders.length === 0 ? (
                             <div className="bg-white/5 backdrop-blur-md p-10 rounded-3xl border border-white/10 text-center">
                                 <p className="text-white/60 text-lg italic tracking-wide">You haven&apos;t placed any orders yet.</p>
                             </div>
