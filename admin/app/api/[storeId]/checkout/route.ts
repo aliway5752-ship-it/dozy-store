@@ -222,6 +222,58 @@ export async function POST(
       // Email failure should not prevent order completion
     }
 
+    // Send WhatsApp notification (non-blocking)
+    try {
+      const orderItemsWithDetails = await prismadb.orderItem.findMany({
+        where: { orderId: order.id },
+        include: { product: true }
+      });
+
+      const whatsappMessage = `
+🛍️ *New Order Notification*
+
+*Order #${order.orderNumber}*
+
+Customer: ${safeName}
+Phone: ${safePhone}
+Address: ${safeAddress}
+
+Items:
+${orderItemsWithDetails.map(item => `- ${item.product.name} x${item.quantity}`).join('\n')}
+
+Total: ${orderItemsWithDetails.reduce((sum, item) => sum + (Number(item.product.price) * item.quantity), 0) + (store.shippingPrice || 0)} EGP
+
+Status: ${order.status}
+      `.trim();
+
+      const adminPhone = process.env.ADMIN_WHATSAPP_NUMBER || '';
+      if (adminPhone) {
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/whatsapp/send`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            phone: adminPhone,
+            message: whatsappMessage,
+            orderData: {
+              orderNumber: order.orderNumber,
+              customerName: safeName,
+              phone: safePhone,
+              items: orderItemsWithDetails.map(item => ({
+                name: item.product.name,
+                quantity: item.quantity
+              })),
+              total: orderItemsWithDetails.reduce((sum, item) => sum + (Number(item.product.price) * item.quantity), 0) + (store.shippingPrice || 0),
+              status: order.status
+            }
+          })
+        });
+        console.log("[CHECKOUT_WHATSAPP_SENT]", { orderNumber: order.orderNumber });
+      }
+    } catch (whatsappError) {
+      console.log("[CHECKOUT_WHATSAPP_ERROR]", whatsappError);
+      // WhatsApp failure should not prevent order completion
+    }
+
     // HARDCODED: Force redirect to storefront (not admin)
     const successUrl = `${FRONTEND_STORE_URL}/cart?success=1&orderId=${order.orderNumber}`;
     console.log("[CHECKOUT_SUCCESS_URL]", successUrl);
