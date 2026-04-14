@@ -223,9 +223,6 @@ export async function POST(
     }
 
     // Send WhatsApp notification (non-blocking)
-    // TEMPORARILY DISABLED: Integration causing build errors
-    // TODO: Fix Baileys auth state structure and re-enable
-    /*
     try {
       const orderItemsWithDetails = await prismadb.orderItem.findMany({
         where: { orderId: order.id },
@@ -276,7 +273,6 @@ Status: ${order.status}
       console.log("[CHECKOUT_WHATSAPP_ERROR]", whatsappError);
       // WhatsApp failure should not prevent order completion
     }
-    */
 
     // HARDCODED: Force redirect to storefront (not admin)
     const successUrl = `${FRONTEND_STORE_URL}/cart?success=1&orderId=${order.orderNumber}`;

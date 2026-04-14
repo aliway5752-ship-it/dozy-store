@@ -30,7 +30,23 @@ async function useAuthState() {
   return {
     state: {
       creds,
-      keys: {},
+      keys: {
+        get: (key: string) => {
+          const keyPath = path.join(authPath, key);
+          try {
+            return JSON.parse(fs.readFileSync(keyPath, 'utf-8'));
+          } catch {
+            return null;
+          }
+        },
+        set: (key: string, value: any) => {
+          const keyPath = path.join(authPath, key);
+          if (!fs.existsSync(path.dirname(keyPath))) {
+            fs.mkdirSync(path.dirname(keyPath), { recursive: true });
+          }
+          fs.writeFileSync(keyPath, JSON.stringify(value, null, 2));
+        }
+      }
     },
     saveCreds: () => {
       fs.writeFileSync(credsPath, JSON.stringify(creds, null, 2));
@@ -58,7 +74,8 @@ export async function getWhatsAppClient(): Promise<WASocket> {
     const { state, saveCreds } = await useAuthState();
 
     whatsappClient = makeWASocket({
-      auth: state,
+      // @ts-ignore
+      auth: state as any,
       printQRInTerminal: false,
       logger,
       browser: ['DozyFashion', 'Chrome', '1.0.0'],
@@ -69,7 +86,7 @@ export async function getWhatsAppClient(): Promise<WASocket> {
       const { connection, lastDisconnect } = update;
 
       if (connection === 'close') {
-        const shouldReconnect = (lastDisconnect.error as Boom)?.output?.statusCode !== DisconnectReason.loggedOut;
+        const shouldReconnect = lastDisconnect?.error ? (lastDisconnect.error as Boom)?.output?.statusCode !== DisconnectReason.loggedOut : true;
 
         if (shouldReconnect) {
           console.log('[WhatsApp] Connection closed, reconnecting...');
@@ -116,7 +133,7 @@ export async function sendWhatsAppMessage(phone: string, message: string): Promi
 
 export async function disconnectWhatsAppClient(): Promise<void> {
   if (whatsappClient) {
-    await whatsappClient.end();
+    await whatsappClient.end(undefined);
     whatsappClient = null;
     isInitializing = false;
     console.log('[WhatsApp] Client disconnected');
