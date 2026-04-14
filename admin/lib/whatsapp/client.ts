@@ -48,7 +48,9 @@ async function useAuthState() {
           if (!fs.existsSync(path.dirname(keyPath))) {
             fs.mkdirSync(path.dirname(keyPath), { recursive: true });
           }
-          fs.writeFileSync(keyPath, JSON.stringify(value, null, 2));
+          // Ensure value is properly stringified
+          const dataToWrite = typeof value === 'string' ? value : JSON.stringify(value, null, 2);
+          fs.writeFileSync(keyPath, dataToWrite);
         }
       }
     },
@@ -92,9 +94,16 @@ export async function getWhatsAppClient(): Promise<WASocket> {
         const phoneNumber = '201505914324';
         console.log('[WhatsApp] Requesting pairing code for:', phoneNumber);
         const pairingCode = await whatsappClient.requestPairingCode(phoneNumber);
+
+        // Log the pairing code type and value for debugging
+        console.log('[WhatsApp] Pairing code type:', typeof pairingCode);
+        console.log('[WhatsApp] Pairing code value:', pairingCode);
         console.log('--- PAIRING CODE:', pairingCode, '---');
       } catch (error) {
         console.error('[WhatsApp] Failed to request pairing code:', error);
+        console.error('[WhatsApp] Error type:', typeof error);
+        console.error('[WhatsApp] Error details:', error instanceof Error ? error.message : error);
+        console.error('[WhatsApp] Full error object:', JSON.stringify(error, null, 2));
       }
     }
 
