@@ -14,8 +14,25 @@ const logger = pino({ level: 'silent' });
 // Use /tmp directory for Vercel compatibility (only writable directory)
 const authPath = path.join('/tmp', 'whatsapp_auth');
 
+// Safe write wrapper to ensure data is always stringified
+const safeWrite = (filePath: string, data: any) => {
+  const stringData = typeof data === 'string' ? data : JSON.stringify(data);
+  fs.writeFileSync(filePath, stringData);
+  console.log(`[FILE-SYSTEM] Successfully wrote to ${filePath}. Type: ${typeof stringData}`);
+};
+
 async function useAuthState() {
   const credsPath = path.join(authPath, 'creds.json');
+
+  // Clean start: Remove any corrupted cache
+  try {
+    if (fs.existsSync(authPath)) {
+      fs.rmSync(authPath, { recursive: true, force: true });
+      console.log('[FILE-SYSTEM] Cleaned /tmp/whatsapp_auth directory');
+    }
+  } catch (cleanupError) {
+    console.log('[FILE-SYSTEM] No existing auth directory to clean (or cleanup failed):', cleanupError);
+  }
 
   let creds: any;
   let isNewSession = false;
@@ -30,38 +47,25 @@ async function useAuthState() {
       creds = sessionData.creds || sessionData;
       isNewSession = false;
 
-      // Write the creds to /tmp for consistency
-      try {
-        if (!fs.existsSync(authPath)) {
-          fs.mkdirSync(authPath, { recursive: true });
-        }
-        const credsString = typeof creds === 'string' ? creds : JSON.stringify(creds, null, 2);
-        fs.writeFileSync(credsPath, credsString);
-        console.log('[WhatsApp] Successfully wrote creds to file');
-      } catch (writeError) {
-        console.error('[WhatsApp] Failed to write creds to file:', writeError);
-        console.error('[WhatsApp] Write error details:', writeError instanceof Error ? writeError.message : writeError);
-        console.error('[WhatsApp] Creds type:', typeof creds);
-        console.error('[WhatsApp] Creds value:', JSON.stringify(creds, null, 2));
-        throw writeError;
+      // Create auth directory
+      if (!fs.existsSync(authPath)) {
+        fs.mkdirSync(authPath, { recursive: true });
       }
+
+      // Write creds using safeWrite
+      safeWrite(credsPath, creds);
 
       // If the session data includes keys, we need to handle them
       if (sessionData.keys) {
         const keys: { [key: string]: any } = {};
         for (const [key, value] of Object.entries(sessionData.keys)) {
-          try {
-            const keyPath = path.join(authPath, key);
-            const keyDir = path.dirname(keyPath);
-            if (!fs.existsSync(keyDir)) {
-              fs.mkdirSync(keyDir, { recursive: true });
-            }
-            const dataToWrite = typeof value === 'string' ? value : JSON.stringify(value, null, 2);
-            fs.writeFileSync(keyPath, dataToWrite);
-            keys[key] = value;
-          } catch (keyWriteError) {
-            console.error('[WhatsApp] Failed to write key file:', key, keyWriteError);
+          const keyPath = path.join(authPath, key);
+          const keyDir = path.dirname(keyPath);
+          if (!fs.existsSync(keyDir)) {
+            fs.mkdirSync(keyDir, { recursive: true });
           }
+          safeWrite(keyPath, value);
+          keys[key] = value;
         }
       }
     } catch (error) {
@@ -74,15 +78,10 @@ async function useAuthState() {
       } catch {
         creds = initAuthCreds();
         isNewSession = true;
-        try {
-          if (!fs.existsSync(authPath)) {
-            fs.mkdirSync(authPath, { recursive: true });
-          }
-          const credsString = typeof creds === 'string' ? creds : JSON.stringify(creds, null, 2);
-          fs.writeFileSync(credsPath, credsString);
-        } catch (fallbackWriteError) {
-          console.error('[WhatsApp] Failed to write fallback creds:', fallbackWriteError);
+        if (!fs.existsSync(authPath)) {
+          fs.mkdirSync(authPath, { recursive: true });
         }
+        safeWrite(credsPath, creds);
       }
     }
   } else {
@@ -92,15 +91,10 @@ async function useAuthState() {
     } catch {
       creds = initAuthCreds();
       isNewSession = true;
-      try {
-        if (!fs.existsSync(authPath)) {
-          fs.mkdirSync(authPath, { recursive: true });
-        }
-        const credsString = typeof creds === 'string' ? creds : JSON.stringify(creds, null, 2);
-        fs.writeFileSync(credsPath, credsString);
-      } catch (writeError) {
-        console.error('[WhatsApp] Failed to write initial creds:', writeError);
+      if (!fs.existsSync(authPath)) {
+        fs.mkdirSync(authPath, { recursive: true });
       }
+      safeWrite(credsPath, creds);
     }
   }
 
@@ -118,19 +112,17 @@ async function useAuthState() {
         },
         set: (key: string, value: any) => {
           const keyPath = path.join(authPath, key);
-          if (!fs.existsSync(path.dirname(keyPath))) {
-            fs.mkdirSync(path.dirname(keyPath), { recursive: true });
+          const keyDir = path.dirname(keyPath);
+          if (!fs.existsSync(keyDir)) {
+            fs.mkdirSync(keyDir, { recursive: true });
           }
-          // Ensure value is properly stringified
-          const dataToWrite = typeof value === 'string' ? value : JSON.stringify(value, null, 2);
-          fs.writeFileSync(keyPath, dataToWrite);
+          safeWrite(keyPath, value);
         }
       }
     },
     saveCreds: () => {
       try {
-        const credsString = typeof creds === 'string' ? creds : JSON.stringify(creds, null, 2);
-        fs.writeFileSync(credsPath, credsString);
+        safeWrite(credsPath, creds);
       } catch (error) {
         console.error('[WhatsApp] Failed to save creds:', error);
       }

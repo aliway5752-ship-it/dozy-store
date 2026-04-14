@@ -3,9 +3,27 @@ import { sendWhatsAppMessage, getWhatsAppClient } from '@/lib/whatsapp/client';
 
 export async function GET() {
   try {
-    console.log('[WhatsApp API] GET request received - requesting pairing code');
+    console.log('[WhatsApp API] GET request received');
 
-    // Get WhatsApp client and request pairing code
+    // Check if session is pre-authenticated via environment variable
+    const hasPreAuthenticatedSession = !!process.env.WHATSAPP_SESSION_DATA;
+
+    if (hasPreAuthenticatedSession) {
+      console.log('[WhatsApp API] Session already authenticated via WHATSAPP_SESSION_DATA');
+      // Initialize client to ensure it's ready
+      await getWhatsAppClient();
+      return NextResponse.json(
+        {
+          success: true,
+          message: 'WhatsApp session already authenticated',
+          authMethod: 'environment_variable'
+        },
+        { status: 200 }
+      );
+    }
+
+    // No pre-authenticated session, request pairing code
+    console.log('[WhatsApp API] Requesting pairing code for new session');
     const client = await getWhatsAppClient();
     const phoneNumber = '201505914324';
 
@@ -21,7 +39,8 @@ export async function GET() {
         success: true,
         message: 'Pairing code requested successfully',
         pairingCode: pairingCode,
-        phoneNumber: phoneNumber
+        phoneNumber: phoneNumber,
+        authMethod: 'pairing_code'
       },
       { status: 200 }
     );
@@ -29,7 +48,7 @@ export async function GET() {
     console.error('[WhatsApp API] GET Error:', error);
     return NextResponse.json(
       {
-        error: 'Failed to request pairing code',
+        error: 'Failed to initialize WhatsApp',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
