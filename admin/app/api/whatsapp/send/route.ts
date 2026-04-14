@@ -63,7 +63,10 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { phone, message, orderData } = body;
+    // Check both phone and phoneNumber fields for compatibility
+    const phone = body.phone || body.phoneNumber;
+    const message = body.message;
+    const orderData = body.orderData;
 
     // Validate required fields
     if (!phone || !message) {
@@ -95,20 +98,22 @@ Thank you for shopping at DozyFashion!
       `.trim();
     }
 
-    // Send WhatsApp message
-    const success = await sendWhatsAppMessage(phone, formattedMessage);
+    // Return 200 immediately (fire and forget pattern)
+    // This prevents Vercel from killing the request during socket connection
+    NextResponse.json(
+      { success: true, message: 'Message sending in background...' },
+      { status: 200 }
+    );
 
-    if (success) {
-      return NextResponse.json(
-        { success: true, message: 'WhatsApp message sent successfully' },
-        { status: 200 }
-      );
-    } else {
-      return NextResponse.json(
-        { error: 'Failed to send WhatsApp message' },
-        { status: 500 }
-      );
-    }
+    // Send WhatsApp message in background
+    sendWhatsAppMessage(phone, formattedMessage).catch(error => {
+      console.error('[WhatsApp API] Background send error:', error);
+    });
+
+    return NextResponse.json(
+      { success: true, message: 'Message sending in background...' },
+      { status: 200 }
+    );
   } catch (error) {
     console.error('[WhatsApp API] Error:', error);
 

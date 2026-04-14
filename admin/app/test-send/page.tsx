@@ -39,10 +39,11 @@ export default function TestSendPage() {
         setPhone('');
         setMessage('');
       } else {
+        console.error('>>> FRONTEND: Full error response:', data);
         setStatus({ type: 'error', message: data.error || 'Failed to send message' });
       }
     } catch (error) {
-      console.error('>>> FRONTEND: Error:', error);
+      console.error('>>> FRONTEND: Network error:', error);
       setStatus({ type: 'error', message: 'Network error. Please try again.' });
     } finally {
       setLoading(false);
