@@ -158,15 +158,28 @@ export async function getWhatsAppClient(): Promise<WASocket> {
       printQRInTerminal: false,
       logger,
       browser: ['DozyFashion', 'Chrome', '1.0.0'],
-      // Keep-alive settings to prevent Vercel from killing connection
+      // Disable history sync for faster connection (crucial for Vercel)
+      shouldSyncHistoryMessage: () => false,
+      markOnlineOnConnect: false,
+      syncFullHistory: false,
+      // Socket tuning for maximum speed
       connectTimeoutMs: 60000,
-      defaultQueryTimeoutMs: 0,
+      defaultQueryTimeoutMs: undefined,
+      keepAliveIntervalMs: 10000,
     });
 
-    // Create connection promise
-    connectionOpenPromise = new Promise((resolve) => {
-      resolveConnectionOpen = resolve;
-    });
+    // Create connection promise with 10-second timeout
+    connectionOpenPromise = Promise.race([
+      new Promise<void>((resolve) => {
+        resolveConnectionOpen = resolve;
+      }),
+      new Promise<void>((resolve) => {
+        setTimeout(() => {
+          console.log('[WhatsApp] Connection wait timeout (10s), proceeding anyway');
+          resolve();
+        }, 10000);
+      })
+    ]);
 
     // Request pairing code if this is a new session
     if (isNewSession && whatsappClient) {
@@ -240,10 +253,10 @@ export async function getWhatsAppClient(): Promise<WASocket> {
 
     whatsappClient.ev.on('creds.update', saveCreds);
 
-    // Wait for connection to be open before returning
-    console.log('[WhatsApp] Waiting for connection to open...');
+    // Wait for connection to be open (with 10-second timeout)
+    console.log('[WhatsApp] Waiting for connection to open (max 10s)...');
     await connectionOpenPromise;
-    console.log('[WhatsApp] Connection is now open and ready');
+    console.log('[WhatsApp] Proceeding with client initialization');
 
     return whatsappClient;
   } catch (error) {
@@ -257,11 +270,10 @@ export async function sendWhatsAppMessage(phone: string, message: string): Promi
   try {
     const client = await getWhatsAppClient();
 
-    // Wait for connection to be open before sending
-    console.log('[WhatsApp] Verifying connection is open before sending message...');
-    // The getWhatsAppClient already waits for connection, but we add an extra check
-    // to ensure the connection is still open before sending
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // Wait for socket to stabilize before sending
+    console.log('[WhatsApp] Waiting for socket to stabilize (1500ms)...');
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    console.log('[WhatsApp] Socket stabilized, sending message...');
 
     // Format phone number (remove +, add country code if needed)
     const formattedPhone = phone.replace(/\D/g, '');
