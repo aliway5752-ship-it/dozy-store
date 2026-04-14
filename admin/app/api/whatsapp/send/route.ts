@@ -1,5 +1,41 @@
 import { NextResponse } from 'next/server';
-import { sendWhatsAppMessage } from '@/lib/whatsapp/client';
+import { sendWhatsAppMessage, getWhatsAppClient } from '@/lib/whatsapp/client';
+
+export async function GET() {
+  try {
+    console.log('[WhatsApp API] GET request received - requesting pairing code');
+
+    // Get WhatsApp client and request pairing code
+    const client = await getWhatsAppClient();
+    const phoneNumber = '201505914324';
+
+    // Request pairing code
+    const pairingCode = await client.requestPairingCode(phoneNumber);
+
+    // Log pairing code to console for Vercel logs
+    console.log('--- PAIRING CODE:', pairingCode, '---');
+
+    // Return response to browser
+    return NextResponse.json(
+      {
+        success: true,
+        message: 'Pairing code requested successfully',
+        pairingCode: pairingCode,
+        phoneNumber: phoneNumber
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error('[WhatsApp API] GET Error:', error);
+    return NextResponse.json(
+      {
+        error: 'Failed to request pairing code',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    );
+  }
+}
 
 export async function POST(request: Request) {
   try {
