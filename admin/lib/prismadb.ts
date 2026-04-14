@@ -11,8 +11,6 @@ const prismadb = globalThis.prisma || new PrismaClient({
             url: process.env.DATABASE_URL,
         },
     },
-    // Connection timeout to prevent hanging on slow database
-    transactionTimeout: 10000, // 10 second transaction timeout
 });
 
 if (process.env.NODE_ENV !== 'production') globalThis.prisma = prismadb;
