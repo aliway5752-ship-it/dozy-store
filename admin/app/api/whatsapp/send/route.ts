@@ -107,6 +107,15 @@ Thank you for shopping at DozyFashion!
     }
   } catch (error) {
     console.error('[WhatsApp API] Error:', error);
+
+    // Check for CONNECTION_TIMEOUT error
+    if (error instanceof Error && error.message === 'CONNECTION_TIMEOUT') {
+      return NextResponse.json(
+        { error: 'Server busy, retrying...' },
+        { status: 504 }
+      );
+    }
+
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

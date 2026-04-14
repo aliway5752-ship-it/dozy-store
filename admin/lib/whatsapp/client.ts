@@ -134,8 +134,9 @@ async function useAuthState() {
 }
 
 export async function getWhatsAppClient(): Promise<WASocket> {
-  // Return existing client if already initialized
+  // Fast-path: Return existing client if already initialized
   if (whatsappClient) {
+    console.log('[WhatsApp] Fast-path: Using existing client');
     return whatsappClient;
   }
 
@@ -168,16 +169,16 @@ export async function getWhatsAppClient(): Promise<WASocket> {
       keepAliveIntervalMs: 10000,
     });
 
-    // Create connection promise with 10-second timeout
+    // Create connection promise with 5-second timeout
     connectionOpenPromise = Promise.race([
       new Promise<void>((resolve) => {
         resolveConnectionOpen = resolve;
       }),
-      new Promise<void>((resolve) => {
+      new Promise<void>((_, reject) => {
         setTimeout(() => {
-          console.log('[WhatsApp] Connection wait timeout (10s), proceeding anyway');
-          resolve();
-        }, 10000);
+          console.log('[WhatsApp] Connection wait timeout (5s), throwing CONNECTION_TIMEOUT');
+          reject(new Error('CONNECTION_TIMEOUT'));
+        }, 5000);
       })
     ]);
 
@@ -253,8 +254,8 @@ export async function getWhatsAppClient(): Promise<WASocket> {
 
     whatsappClient.ev.on('creds.update', saveCreds);
 
-    // Wait for connection to be open (with 10-second timeout)
-    console.log('[WhatsApp] Waiting for connection to open (max 10s)...');
+    // Wait for connection to be open (with 5-second timeout)
+    console.log('[WhatsApp] Waiting for connection to open (max 5s)...');
     await connectionOpenPromise;
     console.log('[WhatsApp] Proceeding with client initialization');
 
@@ -262,6 +263,9 @@ export async function getWhatsAppClient(): Promise<WASocket> {
   } catch (error) {
     console.error('[WhatsApp] Initialization error:', error);
     isInitializing = false;
+    if (error instanceof Error && error.message === 'CONNECTION_TIMEOUT') {
+      throw error;
+    }
     throw error;
   }
 }
@@ -284,6 +288,15 @@ export async function sendWhatsAppMessage(phone: string, message: string): Promi
     return true;
   } catch (error) {
     console.error('[WhatsApp] Send message error:', error);
+
+    // Check if error is related to connection closed
+    const errorMessage = error instanceof Error ? error.message.toLowerCase() : '';
+    if (errorMessage.includes('connection') || errorMessage.includes('closed') || errorMessage.includes('timeout')) {
+      console.log('[WhatsApp] Connection error detected, nullifying client for fresh connection');
+      whatsappClient = null;
+      isInitializing = false;
+    }
+
     return false;
   }
 }
