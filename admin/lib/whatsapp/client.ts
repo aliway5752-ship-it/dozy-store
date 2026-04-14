@@ -20,15 +20,61 @@ async function useAuthState() {
   let creds: any;
   let isNewSession = false;
 
-  try {
-    creds = JSON.parse(fs.readFileSync(credsPath, 'utf-8'));
-  } catch {
-    creds = initAuthCreds();
-    isNewSession = true;
-    if (!fs.existsSync(authPath)) {
-      fs.mkdirSync(authPath, { recursive: true });
+  // Check for pre-authenticated session data from environment variable
+  const sessionDataEnv = process.env.WHATSAPP_SESSION_DATA;
+
+  if (sessionDataEnv) {
+    try {
+      console.log('[WhatsApp] Using pre-authenticated session from environment variable');
+      const sessionData = JSON.parse(sessionDataEnv);
+      creds = sessionData.creds || sessionData;
+      isNewSession = false;
+
+      // Write the creds to /tmp for consistency
+      if (!fs.existsSync(authPath)) {
+        fs.mkdirSync(authPath, { recursive: true });
+      }
+      fs.writeFileSync(credsPath, JSON.stringify(creds, null, 2));
+
+      // If the session data includes keys, we need to handle them
+      if (sessionData.keys) {
+        const keys: { [key: string]: any } = {};
+        for (const [key, value] of Object.entries(sessionData.keys)) {
+          const keyPath = path.join(authPath, key);
+          if (!fs.existsSync(path.dirname(keyPath))) {
+            fs.mkdirSync(path.dirname(keyPath), { recursive: true });
+          }
+          const dataToWrite = typeof value === 'string' ? value : JSON.stringify(value, null, 2);
+          fs.writeFileSync(keyPath, dataToWrite);
+          keys[key] = value;
+        }
+      }
+    } catch (error) {
+      console.error('[WhatsApp] Failed to parse WHATSAPP_SESSION_DATA:', error);
+      // Fall back to file-based auth
+      try {
+        creds = JSON.parse(fs.readFileSync(credsPath, 'utf-8'));
+      } catch {
+        creds = initAuthCreds();
+        isNewSession = true;
+        if (!fs.existsSync(authPath)) {
+          fs.mkdirSync(authPath, { recursive: true });
+        }
+        fs.writeFileSync(credsPath, JSON.stringify(creds, null, 2));
+      }
     }
-    fs.writeFileSync(credsPath, JSON.stringify(creds, null, 2));
+  } else {
+    // No environment variable, use file-based auth
+    try {
+      creds = JSON.parse(fs.readFileSync(credsPath, 'utf-8'));
+    } catch {
+      creds = initAuthCreds();
+      isNewSession = true;
+      if (!fs.existsSync(authPath)) {
+        fs.mkdirSync(authPath, { recursive: true });
+      }
+      fs.writeFileSync(credsPath, JSON.stringify(creds, null, 2));
+    }
   }
 
   return {
