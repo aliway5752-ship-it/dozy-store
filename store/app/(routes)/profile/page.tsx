@@ -66,23 +66,31 @@ const ProfilePage = async () => {
     let orders: any[] = [];
     let ordersError: string | null = null;
     try {
-        const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/${process.env.NEXT_PUBLIC_STORE_ID}/orders?customerId=${userId}`;
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+        const storeId = process.env.NEXT_PUBLIC_STORE_ID || '';
+        const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/${storeId}/orders?customerId=${userId}`;
 
-        const res = await fetch(apiUrl, {
-            cache: 'no-store',
-            signal: controller.signal
-        });
-
-        clearTimeout(timeoutId);
-
-        if (res.ok) {
-            const data = await res.json();
-            orders = Array.isArray(data) ? data : [];
+        if (!storeId) {
+            console.error("[PROFILE_PAGE] NEXT_PUBLIC_STORE_ID is not configured");
+            ordersError = "Store configuration error. Please contact support.";
+            orders = [];
         } else {
-            console.error("[PROFILE_PAGE] Failed to fetch orders:", res.status);
-            ordersError = "Service temporarily unavailable. Please try again later.";
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+            const res = await fetch(apiUrl, {
+                cache: 'no-store',
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+
+            if (res.ok) {
+                const data = await res.json();
+                orders = Array.isArray(data) ? data : [];
+            } else {
+                console.error("[PROFILE_PAGE] Failed to fetch orders:", res.status);
+                ordersError = "Service temporarily unavailable. Please try again later.";
+            }
         }
     } catch (error) {
         if (error.name === 'AbortError') {

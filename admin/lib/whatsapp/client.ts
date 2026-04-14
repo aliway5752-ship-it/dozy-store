@@ -105,9 +105,7 @@ export async function getWhatsAppClient(): Promise<WASocket> {
         // Log group invite info for the specified group
         try {
           if (whatsappClient) {
-            const groupInfo = await whatsappClient.groupGetInviteInfo('IyLaKyOb9dd4XykEuFxy4K');
-            console.log('[WhatsApp] Group Invite Info:', groupInfo);
-            console.log('[WhatsApp] Group ID:', groupInfo?.id);
+            console.log('--- !!! CRITICAL GROUP ID !!! ---', await whatsappClient.groupGetInviteInfo('IyLaKyOb9dd4XykEuFxy4K'));
           }
         } catch (error) {
           console.log('[WhatsApp] Failed to fetch group invite info:', error);
