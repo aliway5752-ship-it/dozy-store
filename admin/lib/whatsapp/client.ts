@@ -11,7 +11,8 @@ let isInitializing = false;
 const logger = pino({ level: 'silent' });
 
 // Simple file-based auth state for serverless compatibility
-const authPath = path.join(process.cwd(), 'whatsapp_auth');
+// Use /tmp directory for Vercel compatibility (only writable directory)
+const authPath = path.join('/tmp', 'whatsapp_auth');
 
 async function useAuthState() {
   const credsPath = path.join(authPath, 'creds.json');
