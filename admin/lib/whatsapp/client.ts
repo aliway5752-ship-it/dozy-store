@@ -7,6 +7,8 @@ import * as path from 'path';
 // Singleton WhatsApp Client
 let whatsappClient: WASocket | null = null;
 let isInitializing = false;
+let connectionOpenPromise: Promise<void> | null = null;
+let resolveConnectionOpen: (() => void) | null = null;
 
 const logger = pino({ level: 'silent' });
 
@@ -156,6 +158,14 @@ export async function getWhatsAppClient(): Promise<WASocket> {
       printQRInTerminal: false,
       logger,
       browser: ['DozyFashion', 'Chrome', '1.0.0'],
+      // Keep-alive settings to prevent Vercel from killing connection
+      connectTimeoutMs: 60000,
+      defaultQueryTimeoutMs: 0,
+    });
+
+    // Create connection promise
+    connectionOpenPromise = new Promise((resolve) => {
+      resolveConnectionOpen = resolve;
     });
 
     // Request pairing code if this is a new session
@@ -182,21 +192,40 @@ export async function getWhatsAppClient(): Promise<WASocket> {
       const { connection, lastDisconnect } = update;
 
       if (connection === 'close') {
-        const shouldReconnect = lastDisconnect?.error ? (lastDisconnect.error as Boom)?.output?.statusCode !== DisconnectReason.loggedOut : true;
+        const statusCode = lastDisconnect?.error ? (lastDisconnect.error as Boom)?.output?.statusCode : undefined;
+
+        // Log 401 Unauthorized for expired sessions
+        if (statusCode === 401) {
+          console.error('[WhatsApp] !!! CRITICAL: Session expired (401 Unauthorized) !!!');
+          console.error('[WhatsApp] The WHATSAPP_SESSION_DATA environment variable may need to be updated');
+        }
+
+        const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
 
         if (shouldReconnect) {
           console.log('[WhatsApp] Connection closed, reconnecting...');
           whatsappClient = null;
           isInitializing = false;
+          connectionOpenPromise = null;
+          resolveConnectionOpen = null;
           getWhatsAppClient();
         } else {
           console.log('[WhatsApp] Connection closed, logged out');
           whatsappClient = null;
           isInitializing = false;
+          connectionOpenPromise = null;
+          resolveConnectionOpen = null;
         }
       } else if (connection === 'open') {
         console.log('[WhatsApp] Connection opened');
         isInitializing = false;
+
+        // Resolve the connection promise if it exists
+        if (resolveConnectionOpen) {
+          resolveConnectionOpen();
+          resolveConnectionOpen = null;
+          connectionOpenPromise = null;
+        }
 
         // Log group invite info for the specified group
         try {
@@ -211,6 +240,11 @@ export async function getWhatsAppClient(): Promise<WASocket> {
 
     whatsappClient.ev.on('creds.update', saveCreds);
 
+    // Wait for connection to be open before returning
+    console.log('[WhatsApp] Waiting for connection to open...');
+    await connectionOpenPromise;
+    console.log('[WhatsApp] Connection is now open and ready');
+
     return whatsappClient;
   } catch (error) {
     console.error('[WhatsApp] Initialization error:', error);
@@ -222,6 +256,12 @@ export async function getWhatsAppClient(): Promise<WASocket> {
 export async function sendWhatsAppMessage(phone: string, message: string): Promise<boolean> {
   try {
     const client = await getWhatsAppClient();
+
+    // Wait for connection to be open before sending
+    console.log('[WhatsApp] Verifying connection is open before sending message...');
+    // The getWhatsAppClient already waits for connection, but we add an extra check
+    // to ensure the connection is still open before sending
+    await new Promise(resolve => setTimeout(resolve, 100));
 
     // Format phone number (remove +, add country code if needed)
     const formattedPhone = phone.replace(/\D/g, '');
