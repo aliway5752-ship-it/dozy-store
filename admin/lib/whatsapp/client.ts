@@ -17,10 +17,13 @@ async function useAuthState() {
   const credsPath = path.join(authPath, 'creds.json');
 
   let creds: any;
+  let isNewSession = false;
+
   try {
     creds = JSON.parse(fs.readFileSync(credsPath, 'utf-8'));
   } catch {
     creds = initAuthCreds();
+    isNewSession = true;
     if (!fs.existsSync(authPath)) {
       fs.mkdirSync(authPath, { recursive: true });
     }
@@ -51,6 +54,7 @@ async function useAuthState() {
     saveCreds: () => {
       fs.writeFileSync(credsPath, JSON.stringify(creds, null, 2));
     },
+    isNewSession,
   };
 }
 
@@ -71,7 +75,7 @@ export async function getWhatsAppClient(): Promise<WASocket> {
 
   try {
     // Use file-based auth state for serverless compatibility
-    const { state, saveCreds } = await useAuthState();
+    const { state, saveCreds, isNewSession } = await useAuthState();
 
     whatsappClient = makeWASocket({
       // @ts-ignore
@@ -80,6 +84,18 @@ export async function getWhatsAppClient(): Promise<WASocket> {
       logger,
       browser: ['DozyFashion', 'Chrome', '1.0.0'],
     });
+
+    // Request pairing code if this is a new session
+    if (isNewSession && whatsappClient) {
+      try {
+        const phoneNumber = '201505914324';
+        console.log('[WhatsApp] Requesting pairing code for:', phoneNumber);
+        const pairingCode = await whatsappClient.requestPairingCode(phoneNumber);
+        console.log('--- PAIRING CODE:', pairingCode, '---');
+      } catch (error) {
+        console.error('[WhatsApp] Failed to request pairing code:', error);
+      }
+    }
 
     // Handle connection events
     whatsappClient.ev.on('connection.update', async (update) => {
