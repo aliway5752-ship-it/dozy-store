@@ -101,6 +101,15 @@ export async function getWhatsAppClient(): Promise<WASocket> {
       } else if (connection === 'open') {
         console.log('[WhatsApp] Connection opened');
         isInitializing = false;
+
+        // Log group invite info for the specified group
+        try {
+          const groupInfo = await whatsappClient.groupGetInviteInfo('IyLaKyOb9dd4XykEuFxy4K');
+          console.log('[WhatsApp] Group Invite Info:', groupInfo);
+          console.log('[WhatsApp] Group ID:', groupInfo?.id || groupInfo?.jid);
+        } catch (error) {
+          console.log('[WhatsApp] Failed to fetch group invite info:', error);
+        }
       }
     });
 
