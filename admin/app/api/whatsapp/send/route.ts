@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { sendWhatsAppMessage, getWhatsAppClient } from '@/lib/whatsapp/client';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     console.log('[WhatsApp API] GET request received');
@@ -57,6 +59,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  console.log('>>> API REACHED: /api/whatsapp/send');
+
   try {
     const body = await request.json();
     const { phone, message, orderData } = body;

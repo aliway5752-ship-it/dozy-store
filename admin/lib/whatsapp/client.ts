@@ -134,6 +134,8 @@ async function useAuthState() {
 }
 
 export async function getWhatsAppClient(): Promise<WASocket> {
+  console.log('[WhatsApp] Client initialization started...');
+
   // Fast-path: Return existing client if already initialized
   if (whatsappClient) {
     console.log('[WhatsApp] Fast-path: Using existing client');

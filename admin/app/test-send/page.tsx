@@ -16,6 +16,9 @@ export default function TestSendPage() {
     setLoading(true);
     setStatus({ type: null, message: '' });
 
+    console.log('>>> FRONTEND: Sending request to /api/whatsapp/send');
+    console.log('>>> FRONTEND: Request body:', { phone, message });
+
     try {
       const response = await fetch('/api/whatsapp/send', {
         method: 'POST',
@@ -25,7 +28,11 @@ export default function TestSendPage() {
         body: JSON.stringify({ phone, message }),
       });
 
+      console.log('>>> FRONTEND: Response status:', response.status);
+
       const data = await response.json();
+
+      console.log('>>> FRONTEND: Response data:', data);
 
       if (response.ok && data.success) {
         setStatus({ type: 'success', message: data.message || 'Message sent successfully!' });
@@ -35,6 +42,7 @@ export default function TestSendPage() {
         setStatus({ type: 'error', message: data.error || 'Failed to send message' });
       }
     } catch (error) {
+      console.error('>>> FRONTEND: Error:', error);
       setStatus({ type: 'error', message: 'Network error. Please try again.' });
     } finally {
       setLoading(false);
