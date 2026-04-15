@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sendWhatsAppMessage, getWhatsAppClient } from '@/lib/whatsapp/client';
+import { sendWhatsAppMessage, getWhatsAppClient, disconnectWhatsAppClient } from '@/lib/whatsapp/client';
 
 export const dynamic = 'force-dynamic';
 
@@ -67,6 +67,7 @@ export async function POST(request: Request) {
     const phone = body.phone || body.phoneNumber;
     const message = body.message;
     const orderData = body.orderData;
+    const forceNewSession = body.forceNewSession;
 
     // Validate required fields
     if (!phone || !message) {
@@ -74,6 +75,12 @@ export async function POST(request: Request) {
         { error: 'Phone and message are required' },
         { status: 400 }
       );
+    }
+
+    // Force reconnect if requested
+    if (forceNewSession) {
+      console.log('[WhatsApp] Force reconnect requested, disconnecting client');
+      await disconnectWhatsAppClient();
     }
 
     // Format message if order data is provided
@@ -98,8 +105,12 @@ Thank you for shopping at DozyFashion!
       `.trim();
     }
 
-    // Use race condition: wait for send OR 8-second timeout
-    // This prevents Vercel from terminating the function before send completes
+    // Step 1: Connecting
+    console.log('[WhatsApp] Step 1: Establishing WhatsApp socket...');
+    const client = await getWhatsAppClient();
+
+    // Step 2: Sending
+    console.log('[WhatsApp] Step 2: Socket open! Sending your message...');
     console.log('[WhatsApp] Attempting background send for phone:', phone);
     const sendPromise = sendWhatsAppMessage(phone, formattedMessage);
     const timeoutPromise = new Promise<boolean>((resolve) => {
@@ -113,12 +124,20 @@ Thank you for shopping at DozyFashion!
 
     if (result) {
       return NextResponse.json(
-        { success: true, message: 'WhatsApp message sent successfully' },
+        {
+          success: true,
+          step: 'completed',
+          message: 'WhatsApp message sent successfully'
+        },
         { status: 200 }
       );
     } else {
       return NextResponse.json(
-        { success: true, message: 'Message sending in background (timed out waiting for confirmation)' },
+        {
+          success: true,
+          step: 'sending',
+          message: 'Message sending in background (timed out waiting for confirmation)'
+        },
         { status: 200 }
       );
     }
@@ -128,13 +147,19 @@ Thank you for shopping at DozyFashion!
     // Check for CONNECTION_TIMEOUT error
     if (error instanceof Error && error.message === 'CONNECTION_TIMEOUT') {
       return NextResponse.json(
-        { error: 'Server busy, retrying...' },
+        {
+          error: 'Server busy, retrying...',
+          step: 'timeout'
+        },
         { status: 504 }
       );
     }
 
     return NextResponse.json(
-      { error: 'Internal server error' },
+      {
+        error: 'Internal server error',
+        step: 'error'
+      },
       { status: 500 }
     );
   }

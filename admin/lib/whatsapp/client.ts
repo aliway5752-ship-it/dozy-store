@@ -16,6 +16,14 @@ const logger = pino({ level: 'silent' });
 // Use /tmp directory for Vercel compatibility (only writable directory)
 const authPath = path.join('/tmp', 'whatsapp_auth');
 
+// Check if session is from environment variable
+const isSessionFromEnv = !!process.env.WHATSAPP_SESSION_DATA;
+if (isSessionFromEnv) {
+  console.log('[WhatsApp] Session source: Environment variable (WHATSAPP_SESSION_DATA)');
+} else {
+  console.log('[WhatsApp] Session source: Local file system (/tmp/whatsapp_auth)');
+}
+
 // Safe write wrapper to ensure data is always stringified
 const safeWrite = (filePath: string, data: any) => {
   const stringData = typeof data === 'string' ? data : JSON.stringify(data);

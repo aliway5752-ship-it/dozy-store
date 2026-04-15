@@ -6,18 +6,28 @@ export default function TestSendPage() {
   const [phone, setPhone] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [forceNewSession, setForceNewSession] = useState(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error' | null; message: string }>({
     type: null,
     message: ''
   });
+  const [logs, setLogs] = useState<string[]>([]);
+
+  const addLog = (log: string) => {
+    setLogs(prev => [...prev, log]);
+  };
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setStatus({ type: null, message: '' });
+    setLogs([]);
+
+    addLog('🟢 API Request Received');
+    addLog('🟡 Accessing Session Data...');
 
     console.log('>>> FRONTEND: Sending request to /api/whatsapp/send');
-    console.log('>>> FRONTEND: Request body:', { phone, message });
+    console.log('>>> FRONTEND: Request body:', { phone, message, forceNewSession });
 
     try {
       const response = await fetch('/api/whatsapp/send', {
@@ -25,7 +35,7 @@ export default function TestSendPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ phone, message }),
+        body: JSON.stringify({ phone, message, forceNewSession }),
       });
 
       console.log('>>> FRONTEND: Response status:', response.status);
@@ -35,15 +45,26 @@ export default function TestSendPage() {
       console.log('>>> FRONTEND: Response data:', data);
 
       if (response.ok && data.success) {
+        addLog('🟡 Connecting to WhatsApp Servers...');
+        addLog('🔄 Waiting for Phone Confirmation...');
+
+        if (data.step === 'completed') {
+          addLog('✅ Message sent successfully!');
+        } else if (data.step === 'sending') {
+          addLog('⏳ Message sending in background...');
+        }
+
         setStatus({ type: 'success', message: data.message || 'Message sent successfully!' });
         setPhone('');
         setMessage('');
       } else {
         console.error('>>> FRONTEND: Full error response:', data);
+        addLog('❌ Error: ' + (data.error || 'Failed to send message'));
         setStatus({ type: 'error', message: data.error || 'Failed to send message' });
       }
     } catch (error) {
       console.error('>>> FRONTEND: Network error:', error);
+      addLog('❌ Network error');
       setStatus({ type: 'error', message: 'Network error. Please try again.' });
     } finally {
       setLoading(false);
@@ -62,6 +83,20 @@ export default function TestSendPage() {
           </p>
 
           <form onSubmit={handleSend} className="space-y-6">
+            {/* Force Reconnect Checkbox */}
+            <div className="flex items-center space-x-3">
+              <input
+                type="checkbox"
+                id="forceNewSession"
+                checked={forceNewSession}
+                onChange={(e) => setForceNewSession(e.target.checked)}
+                className="w-4 h-4 text-blue-600 bg-slate-900/50 border-slate-600 rounded focus:ring-2 focus:ring-blue-500"
+              />
+              <label htmlFor="forceNewSession" className="text-sm text-slate-300">
+                Force Reconnect (new session)
+              </label>
+            </div>
+
             {/* Phone Number Input */}
             <div>
               <label htmlFor="phone" className="block text-sm font-medium text-slate-300 mb-2">
@@ -118,6 +153,20 @@ export default function TestSendPage() {
               )}
             </button>
           </form>
+
+          {/* Log Box */}
+          {logs.length > 0 && (
+            <div className="mt-6 p-4 bg-slate-900/50 border border-slate-600 rounded-lg">
+              <h3 className="text-sm font-medium text-slate-300 mb-3">Status Log</h3>
+              <div className="space-y-2">
+                {logs.map((log, index) => (
+                  <div key={index} className="text-sm text-slate-400 font-mono">
+                    {log}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Status Message */}
           {status.message && (
