@@ -98,22 +98,30 @@ Thank you for shopping at DozyFashion!
       `.trim();
     }
 
-    // Return 200 immediately (fire and forget pattern)
-    // This prevents Vercel from killing the request during socket connection
-    NextResponse.json(
-      { success: true, message: 'Message sending in background...' },
-      { status: 200 }
-    );
-
-    // Send WhatsApp message in background
-    sendWhatsAppMessage(phone, formattedMessage).catch(error => {
-      console.error('[WhatsApp API] Background send error:', error);
+    // Use race condition: wait for send OR 8-second timeout
+    // This prevents Vercel from terminating the function before send completes
+    console.log('[WhatsApp] Attempting background send for phone:', phone);
+    const sendPromise = sendWhatsAppMessage(phone, formattedMessage);
+    const timeoutPromise = new Promise<boolean>((resolve) => {
+      setTimeout(() => {
+        console.log('[WhatsApp] Send timeout (8s), proceeding with response');
+        resolve(false);
+      }, 8000);
     });
 
-    return NextResponse.json(
-      { success: true, message: 'Message sending in background...' },
-      { status: 200 }
-    );
+    const result = await Promise.race([sendPromise, timeoutPromise]);
+
+    if (result) {
+      return NextResponse.json(
+        { success: true, message: 'WhatsApp message sent successfully' },
+        { status: 200 }
+      );
+    } else {
+      return NextResponse.json(
+        { success: true, message: 'Message sending in background (timed out waiting for confirmation)' },
+        { status: 200 }
+      );
+    }
   } catch (error) {
     console.error('[WhatsApp API] Error:', error);
 

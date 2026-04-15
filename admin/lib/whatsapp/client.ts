@@ -166,7 +166,7 @@ export async function getWhatsAppClient(): Promise<WASocket> {
       markOnlineOnConnect: false,
       syncFullHistory: false,
       // Socket tuning for maximum speed
-      connectTimeoutMs: 60000,
+      connectTimeoutMs: 30000,
       defaultQueryTimeoutMs: undefined,
       keepAliveIntervalMs: 10000,
     });
