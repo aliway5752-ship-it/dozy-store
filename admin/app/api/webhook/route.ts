@@ -31,6 +31,78 @@ export async function POST(req: Request) {
     const addressString = addressComponents.filter(c => c !== null).join(', ');
 
     if(event.type === 'checkout.session.completed') {
+        console.log("🎯 CRITICAL: checkout.session.completed event received");
+
+        // Forward to Railway WhatsApp bot IMMEDIATELY (before any database operations)
+        // This ensures bot notification executes even if database update fails
+        (async () => {
+            try {
+                // Force Bot URL
+                const botUrl = "https://web-production-a9cd0.up.railway.app/api/checkout";
+
+                console.log("🔍 CRITICAL: Fetching order data for bot notification");
+
+                // Fetch order first to get order items (not update yet)
+                const order = await prismadb.order.findUnique({
+                    where: {
+                        id: session?.metadata?.orderId,
+                    },
+                    include: {
+                        orderItems: {
+                            include: {
+                                product: true
+                            }
+                        }
+                    }
+                });
+
+                if (!order) {
+                    console.error("❌ CRITICAL: Order not found for bot notification:", session?.metadata?.orderId);
+                    return;
+                }
+
+                // Calculate total from order items
+                const totalAmount = order.orderItems.reduce((sum: number, item) => {
+                    const price = Number(item.priceAtOrder || item.product.price);
+                    return sum + (price * item.quantity);
+                }, 0);
+
+                const orderData = {
+                    customerName: session.customer_details?.name || order.customerName,
+                    customerPhone: session.customer_details?.phone || order.phone,
+                    totalAmount: totalAmount,
+                    items: order.orderItems.map((item) => ({
+                        name: item.product.name,
+                        quantity: item.quantity
+                    }))
+                };
+
+                // Explicit Logging
+                console.log("🚀 CRITICAL: Sending order data to bot now at:", botUrl);
+                console.log("📦 Payload being sent:", JSON.stringify(orderData, null, 2));
+
+                // Response Check
+                const response = await fetch(botUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(orderData)
+                });
+
+                console.log("📡 BOT RESPONSE STATUS:", response.status);
+                if (response.ok) {
+                    console.log("✅ Bot received the data successfully");
+                } else {
+                    console.log("❌ Bot rejected the data");
+                }
+            } catch (notificationError) {
+                console.error("❌ CRITICAL: Failed to forward order to Railway bot:", notificationError);
+                // Don't crash the webhook if notification fails
+            }
+        })(); // Fire and forget - non-blocking
+
+        // Now update the order in the database (this can happen after bot notification)
         const order = await prismadb.order.update({
             where: {
                 id: session?.metadata?.orderId,
@@ -50,39 +122,7 @@ export async function POST(req: Request) {
             }
         });
 
-        // Forward to Railway WhatsApp bot
-        try {
-            console.log("Forwarding confirmed order to Railway bot...");
-
-            // Calculate total from order items
-            const totalAmount = order.orderItems.reduce((sum: number, item) => {
-                const price = Number(item.priceAtOrder || item.product.price);
-                return sum + (price * item.quantity);
-            }, 0);
-
-            const orderData = {
-                customerName: order.customerName,
-                customerPhone: order.phone,
-                totalAmount: totalAmount,
-                items: order.orderItems.map((item) => ({
-                    name: item.product.name,
-                    quantity: item.quantity
-                }))
-            };
-
-            await fetch('https://web-production-a9cd0.up.railway.app/api/checkout', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(orderData)
-            });
-
-            console.log("Order forwarded to Railway bot successfully");
-        } catch (notificationError) {
-            console.error("Failed to forward order to Railway bot:", notificationError);
-            // Don't crash the webhook if notification fails
-        }
+        console.log("💾 Order updated successfully in database:", order.id);
     }
 
     return new NextResponse(null, { status: 200 });

@@ -117,6 +117,7 @@ const CartPage = () => {
   };
 
   const onCheckout = async () => {
+    console.log("🚨 EMERGENCY LOG: CART PAGE CHECKOUT - onCheckout called");
     try {
       if (!formData.email || !formData.phone1 || !formData.governorate || !formData.firstName || !formData.streetName) {
         return toast.error("يرجى ملء البيانات الأساسية");
@@ -125,7 +126,7 @@ const CartPage = () => {
       setLoading(true);
 
       const requestData = {
-        cartItems: cart.items.flatMap((item) => 
+        cartItems: cart.items.flatMap((item) =>
           Array(item.quantity).fill({ id: item.id })
         ),
         name: `${formData.firstName} ${formData.lastName}`,
@@ -138,6 +139,7 @@ const CartPage = () => {
         customerId: user?.id || null,
       };
 
+      console.log("🚨 EMERGENCY LOG: CART PAGE Calling admin API at:", `${process.env.NEXT_PUBLIC_API_URL}/checkout`);
       const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/checkout`, requestData);
 
       console.log("[CHECKOUT_RESPONSE]", response.data);

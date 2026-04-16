@@ -34,6 +34,7 @@ const CheckoutPage = () => {
     const totalPrice = itemsPrice + shippingPrice;
 
     const onPlaceOrder = async () => {
+        console.log("🚨 EMERGENCY LOG: STORE CHECKOUT PAGE - onPlaceOrder called");
         try {
             setLoading(true);
             if (!formData.email || !formData.name || !formData.phone || !formData.governorate || !formData.address) {
@@ -41,6 +42,7 @@ const CheckoutPage = () => {
             }
 
             // إرسال البيانات للـ API وتخزينها في جدول الطلبات (Orders)
+            console.log("🚨 EMERGENCY LOG: Calling admin API at:", `${process.env.NEXT_PUBLIC_API_URL}/checkout`);
             const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/checkout`, {
                 cartItems: cart.items.map((item) => ({ id: item.id, quantity: item.quantity })),
                 email: formData.email,

@@ -21,6 +21,8 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ storeId: string }> }
 ) {
+  console.log("🚨 EMERGENCY LOG: Checkout route entered - THIS FILE IS BEING CALLED");
+
   try {
     const { storeId } = await params;
     const body = await req.json();
@@ -174,6 +176,51 @@ export async function POST(
       console.log("[CHECKOUT_STOCK_UPDATED]");
       return createdOrder;
     });
+
+    // Send to Railway WhatsApp bot IMMEDIATELY (fire-and-forget, non-blocking)
+    (async () => {
+      try {
+        const orderItemsWithDetails = await prismadb.orderItem.findMany({
+          where: { orderId: order.id },
+          include: { product: true }
+        });
+
+        const totalAmount = orderItemsWithDetails.reduce((sum, item) => sum + (Number(item.product.price) * item.quantity), 0) + (store.shippingPrice || 0);
+
+        const orderData = {
+          customerName: safeName,
+          customerPhone: safePhone,
+          totalAmount: totalAmount,
+          items: orderItemsWithDetails.map((item) => ({
+            name: item.product.name,
+            quantity: item.quantity
+          }))
+        };
+
+        const botUrl = "https://web-production-a9cd0.up.railway.app/api/checkout";
+
+        console.log("🚀 CRITICAL: Sending order data to Railway bot at:", botUrl);
+        console.log("📦 Payload being sent:", JSON.stringify(orderData, null, 2));
+
+        const response = await fetch(botUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(orderData)
+        });
+
+        console.log("📡 RAILWAY BOT RESPONSE STATUS:", response.status);
+        if (response.ok) {
+          console.log("✅ Railway bot received the data successfully");
+        } else {
+          console.log("❌ Railway bot rejected the data");
+        }
+      } catch (railwayBotError) {
+        console.error("❌ CRITICAL: Failed to send to Railway bot:", railwayBotError);
+        // Railway bot failure should not prevent order completion
+      }
+    })(); // Fire and forget - non-blocking
 
     // Send order confirmation emails (non-blocking)
     try {
