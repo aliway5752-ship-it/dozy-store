@@ -112,35 +112,21 @@ Thank you for shopping at DozyFashion!
     // Step 2: Sending
     console.log('[WhatsApp] Step 2: Socket open! Sending your message...');
     console.log('[WhatsApp] Attempting background send for phone:', phone);
-    const sendPromise = sendWhatsAppMessage(phone, formattedMessage);
-    const timeoutPromise = new Promise<boolean>((resolve) => {
-      setTimeout(() => {
-        console.log('[WhatsApp] Send timeout (8s), proceeding with response');
-        resolve(false);
-      }, 8000);
+
+    // Send message in background without waiting for ack (fire and forget)
+    sendWhatsAppMessage(phone, formattedMessage).catch(error => {
+      console.error('[WhatsApp API] Background send error:', error);
     });
 
-    const result = await Promise.race([sendPromise, timeoutPromise]);
-
-    if (result) {
-      return NextResponse.json(
-        {
-          success: true,
-          step: 'completed',
-          message: 'WhatsApp message sent successfully'
-        },
-        { status: 200 }
-      );
-    } else {
-      return NextResponse.json(
-        {
-          success: true,
-          step: 'sending',
-          message: 'Message sending in background (timed out waiting for confirmation)'
-        },
-        { status: 200 }
-      );
-    }
+    // Return success immediately without waiting for ack
+    return NextResponse.json(
+      {
+        success: true,
+        step: 'sending',
+        message: 'Message sent to socket (confirmation pending)'
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error('[WhatsApp API] Error:', error);
 

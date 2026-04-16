@@ -7,6 +7,7 @@ import * as path from 'path';
 // Singleton WhatsApp Client
 let whatsappClient: WASocket | null = null;
 let isInitializing = false;
+let initializationPromise: Promise<WASocket> | null = null;
 let connectionOpenPromise: Promise<void> | null = null;
 let resolveConnectionOpen: (() => void) | null = null;
 
@@ -144,10 +145,16 @@ async function useAuthState() {
 export async function getWhatsAppClient(): Promise<WASocket> {
   console.log('[WhatsApp] Client initialization started...');
 
-  // Fast-path: Return existing client if already connected (check for user to verify connection)
-  if (whatsappClient?.user) {
-    console.log('[WhatsApp] Fast-path: Using existing connected client');
+  // Ultra-fast path: Return existing client if socket is open
+  if (whatsappClient?.user && whatsappClient.ws?.isOpen) {
+    console.log('[WhatsApp] Ultra-fast path: Using existing open socket');
     return whatsappClient;
+  }
+
+  // Connection locking: Return existing initialization promise if in progress
+  if (initializationPromise) {
+    console.log('[WhatsApp] Connection in progress, waiting for existing promise');
+    return await initializationPromise;
   }
 
   // Prevent multiple simultaneous initializations
@@ -159,125 +166,133 @@ export async function getWhatsAppClient(): Promise<WASocket> {
 
   isInitializing = true;
 
-  try {
-    // Use file-based auth state for serverless compatibility
-    const { state, saveCreds, isNewSession } = await useAuthState();
+  // Set initialization promise to lock connection attempts
+  initializationPromise = (async () => {
+    try {
+      // Use file-based auth state for serverless compatibility
+      const { state, saveCreds, isNewSession } = await useAuthState();
 
-    whatsappClient = makeWASocket({
-      // @ts-ignore
-      auth: state as any,
-      printQRInTerminal: false,
-      logger,
-      browser: ['DozyFashion', 'Chrome', '1.0.0'],
-      // Disable history sync for faster connection (crucial for Vercel)
-      shouldSyncHistoryMessage: () => false,
-      markOnlineOnConnect: false,
-      syncFullHistory: false,
-      // Aggressive speed tuning for Vercel
-      connectTimeoutMs: 10000,
-      defaultQueryTimeoutMs: undefined,
-      keepAliveIntervalMs: 10000,
-    });
+      whatsappClient = makeWASocket({
+        // @ts-ignore
+        auth: state as any,
+        printQRInTerminal: false,
+        logger,
+        browser: ['DozyFashion', 'Chrome', '1.0.0'],
+        // Disable history sync for faster connection (crucial for Vercel)
+        shouldSyncHistoryMessage: () => false,
+        markOnlineOnConnect: false,
+        syncFullHistory: false,
+        // Aggressive speed tuning for Vercel
+        connectTimeoutMs: 10000,
+        defaultQueryTimeoutMs: undefined,
+        keepAliveIntervalMs: 10000,
+      });
 
-    // Create connection promise with 5-second timeout
-    connectionOpenPromise = Promise.race([
-      new Promise<void>((resolve) => {
-        resolveConnectionOpen = resolve;
-      }),
-      new Promise<void>((_, reject) => {
-        setTimeout(() => {
-          console.log('[WhatsApp] Connection wait timeout (5s), throwing CONNECTION_TIMEOUT');
-          reject(new Error('CONNECTION_TIMEOUT'));
-        }, 5000);
-      })
-    ]);
+      // Create connection promise with 5-second timeout
+      connectionOpenPromise = Promise.race([
+        new Promise<void>((resolve) => {
+          resolveConnectionOpen = resolve;
+        }),
+        new Promise<void>((_, reject) => {
+          setTimeout(() => {
+            console.log('[WhatsApp] Connection wait timeout (5s), throwing CONNECTION_TIMEOUT');
+            reject(new Error('CONNECTION_TIMEOUT'));
+          }, 5000);
+        })
+      ]);
 
-    // Request pairing code if this is a new session
-    if (isNewSession && whatsappClient) {
-      try {
-        const phoneNumber = '201505914324';
-        console.log('[WhatsApp] Requesting pairing code for:', phoneNumber);
-        const pairingCode = await whatsappClient.requestPairingCode(phoneNumber);
-
-        // Log the pairing code type and value for debugging
-        console.log('[WhatsApp] Pairing code type:', typeof pairingCode);
-        console.log('[WhatsApp] Pairing code value:', pairingCode);
-        console.log('--- PAIRING CODE:', pairingCode, '---');
-      } catch (error) {
-        console.error('[WhatsApp] Failed to request pairing code:', error);
-        console.error('[WhatsApp] Error type:', typeof error);
-        console.error('[WhatsApp] Error details:', error instanceof Error ? error.message : error);
-        console.error('[WhatsApp] Full error object:', JSON.stringify(error, null, 2));
-      }
-    }
-
-    // Handle connection events
-    whatsappClient.ev.on('connection.update', async (update) => {
-      const { connection, lastDisconnect } = update;
-
-      if (connection === 'close') {
-        const statusCode = lastDisconnect?.error ? (lastDisconnect.error as Boom)?.output?.statusCode : undefined;
-
-        // Log 401 Unauthorized for expired sessions
-        if (statusCode === 401) {
-          console.error('[WhatsApp] !!! CRITICAL: Session expired (401 Unauthorized) !!!');
-          console.error('[WhatsApp] The WHATSAPP_SESSION_DATA environment variable may need to be updated');
-        }
-
-        const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
-
-        if (shouldReconnect) {
-          console.log('[WhatsApp] Connection closed, reconnecting...');
-          whatsappClient = null;
-          isInitializing = false;
-          connectionOpenPromise = null;
-          resolveConnectionOpen = null;
-          getWhatsAppClient();
-        } else {
-          console.log('[WhatsApp] Connection closed, logged out');
-          whatsappClient = null;
-          isInitializing = false;
-          connectionOpenPromise = null;
-          resolveConnectionOpen = null;
-        }
-      } else if (connection === 'open') {
-        console.log('[WhatsApp] Connection opened');
-        isInitializing = false;
-
-        // Resolve the connection promise if it exists
-        if (resolveConnectionOpen) {
-          resolveConnectionOpen();
-          resolveConnectionOpen = null;
-          connectionOpenPromise = null;
-        }
-
-        // Log group invite info for the specified group
+      // Request pairing code if this is a new session
+      if (isNewSession && whatsappClient) {
         try {
-          if (whatsappClient) {
-            console.log('--- !!! CRITICAL GROUP ID !!! ---', await whatsappClient.groupGetInviteInfo('IyLaKyOb9dd4XykEuFxy4K'));
-          }
+          const phoneNumber = '201505914324';
+          console.log('[WhatsApp] Requesting pairing code for:', phoneNumber);
+          const pairingCode = await whatsappClient.requestPairingCode(phoneNumber);
+
+          // Log the pairing code type and value for debugging
+          console.log('[WhatsApp] Pairing code type:', typeof pairingCode);
+          console.log('[WhatsApp] Pairing code value:', pairingCode);
+          console.log('--- PAIRING CODE:', pairingCode, '---');
         } catch (error) {
-          console.log('[WhatsApp] Failed to fetch group invite info:', error);
+          console.error('[WhatsApp] Failed to request pairing code:', error);
+          console.error('[WhatsApp] Error type:', typeof error);
+          console.error('[WhatsApp] Error details:', error instanceof Error ? error.message : error);
+          console.error('[WhatsApp] Full error object:', JSON.stringify(error, null, 2));
         }
       }
-    });
 
-    whatsappClient.ev.on('creds.update', saveCreds);
+      // Handle connection events
+      whatsappClient.ev.on('connection.update', async (update) => {
+        const { connection, lastDisconnect } = update;
 
-    // Wait for connection to be open (with 5-second timeout)
-    console.log('[WhatsApp] Waiting for connection to open (max 5s)...');
-    await connectionOpenPromise;
-    console.log('[WhatsApp] Proceeding with client initialization');
+        if (connection === 'close') {
+          const statusCode = lastDisconnect?.error ? (lastDisconnect.error as Boom)?.output?.statusCode : undefined;
 
-    return whatsappClient;
-  } catch (error) {
-    console.error('[WhatsApp] Initialization error:', error);
-    isInitializing = false;
-    if (error instanceof Error && error.message === 'CONNECTION_TIMEOUT') {
+          // Log 401 Unauthorized for expired sessions
+          if (statusCode === 401) {
+            console.error('[WhatsApp] !!! CRITICAL: Session expired (401 Unauthorized) !!!');
+            console.error('[WhatsApp] The WHATSAPP_SESSION_DATA environment variable may need to be updated');
+          }
+
+          const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
+
+          if (shouldReconnect) {
+            console.log('[WhatsApp] Connection closed, reconnecting...');
+            whatsappClient = null;
+            isInitializing = false;
+            initializationPromise = null;
+            connectionOpenPromise = null;
+            resolveConnectionOpen = null;
+            getWhatsAppClient();
+          } else {
+            console.log('[WhatsApp] Connection closed, logged out');
+            whatsappClient = null;
+            isInitializing = false;
+            initializationPromise = null;
+            connectionOpenPromise = null;
+            resolveConnectionOpen = null;
+          }
+        } else if (connection === 'open') {
+          console.log('[WhatsApp] Connection opened');
+          isInitializing = false;
+
+          // Resolve the connection promise if it exists
+          if (resolveConnectionOpen) {
+            resolveConnectionOpen();
+            resolveConnectionOpen = null;
+            connectionOpenPromise = null;
+          }
+
+          // Log group invite info for the specified group
+          try {
+            if (whatsappClient) {
+              console.log('--- !!! CRITICAL GROUP ID !!! ---', await whatsappClient.groupGetInviteInfo('IyLaKyOb9dd4XykEuFxy4K'));
+            }
+          } catch (error) {
+            console.log('[WhatsApp] Failed to fetch group invite info:', error);
+          }
+        }
+      });
+
+      whatsappClient.ev.on('creds.update', saveCreds);
+
+      // Wait for connection to be open (with 5-second timeout)
+      console.log('[WhatsApp] Waiting for connection to open (max 5s)...');
+      await connectionOpenPromise;
+      console.log('[WhatsApp] Proceeding with client initialization');
+
+      return whatsappClient;
+    } catch (error) {
+      console.error('[WhatsApp] Initialization error:', error);
+      isInitializing = false;
+      initializationPromise = null;
+      if (error instanceof Error && error.message === 'CONNECTION_TIMEOUT') {
+        throw error;
+      }
       throw error;
     }
-    throw error;
-  }
+  })();
+
+  return await initializationPromise;
 }
 
 export async function sendWhatsAppMessage(phone: string, message: string): Promise<boolean> {
