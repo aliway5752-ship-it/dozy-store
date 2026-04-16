@@ -51,25 +51,30 @@ const CheckoutPage = () => {
                 totalPrice: totalPrice
             });
 
-            // Send WhatsApp notification to admin group
+            // Send WhatsApp notification to Railway bot
             try {
-                await fetch('https://dozy-admin.vercel.app/api/orders/notification', {
+                const botUrl = process.env.NEXT_PUBLIC_WHATSAPP_BOT_URL || 'https://web-production-a9cd0.up.railway.app';
+                const targetEndpoint = `${botUrl}/api/checkout`;
+
+                const orderData = {
+                    customerName: formData.name,
+                    customerPhone: formData.phone,
+                    totalAmount: totalPrice,
+                    items: cart.items.map((item) => ({
+                        name: item.name,
+                        quantity: item.quantity
+                    }))
+                };
+
+                console.log("Outgoing order to bot:", targetEndpoint, orderData);
+
+                await fetch(targetEndpoint, {
                     method: 'POST',
+                    mode: 'cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        orderId: response.data.orderId || 'NEW',
-                        name: formData.name,
-                        phone: formData.phone,
-                        items: cart.items.map((item) => ({
-                            name: item.name,
-                            quantity: item.quantity
-                        })),
-                        total: totalPrice,
-                        address: `${formData.governorate} - ${formData.address}`,
-                        paymentMethod: 'Cash on Delivery'
-                    })
+                    body: JSON.stringify(orderData)
                 });
             } catch (notificationError) {
                 console.error('Failed to send WhatsApp notification:', notificationError);
