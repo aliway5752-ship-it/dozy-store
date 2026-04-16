@@ -151,10 +151,36 @@ export async function getWhatsAppClient(): Promise<WASocket> {
     return whatsappClient;
   }
 
+  // Immediate socket return: If socket exists (even if connecting), return it immediately
+  if (whatsappClient && whatsappClient.ws) {
+    console.log('[WhatsApp] Immediate return: Socket exists (may be connecting)');
+    return whatsappClient;
+  }
+
   // Connection locking: Return existing initialization promise if in progress
   if (initializationPromise) {
-    console.log('[WhatsApp] Connection in progress, waiting for existing promise');
-    return await initializationPromise;
+    console.log('[WhatsApp] Connection in progress, waiting for existing promise (max 4s)');
+    try {
+      return await Promise.race([
+        initializationPromise,
+        new Promise<WASocket>((_, reject) => {
+          setTimeout(() => {
+            console.log('[WhatsApp] Initialization wait timeout (4s), returning socket anyway');
+            if (whatsappClient) {
+              reject(whatsappClient); // Return the socket even if not fully connected
+            } else {
+              reject(new Error('CONNECTION_TIMEOUT'));
+            }
+          }, 4000);
+        })
+      ]);
+    } catch (error) {
+      if (error instanceof Error && error.message === 'CONNECTION_TIMEOUT') {
+        throw error;
+      }
+      // If we got the socket from the timeout, return it
+      return error as WASocket;
+    }
   }
 
   // Prevent multiple simultaneous initializations
