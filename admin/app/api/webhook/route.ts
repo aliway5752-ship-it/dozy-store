@@ -31,7 +31,7 @@ export async function POST(req: Request) {
     const addressString = addressComponents.filter(c => c !== null).join(', ');
 
     if(event.type === 'checkout.session.completed') {
-        await prismadb.order.update({
+        const order = await prismadb.order.update({
             where: {
                 id: session?.metadata?.orderId,
             },
@@ -40,8 +40,49 @@ export async function POST(req: Request) {
                 status: "PAID",
                 address: addressString,
                 phone: session?.customer_details?.phone || ''
+            },
+            include: {
+                orderItems: {
+                    include: {
+                        product: true
+                    }
+                }
             }
         });
+
+        // Forward to Railway WhatsApp bot
+        try {
+            console.log("Forwarding confirmed order to Railway bot...");
+
+            // Calculate total from order items
+            const totalAmount = order.orderItems.reduce((sum: number, item) => {
+                const price = Number(item.priceAtOrder || item.product.price);
+                return sum + (price * item.quantity);
+            }, 0);
+
+            const orderData = {
+                customerName: order.customerName,
+                customerPhone: order.phone,
+                totalAmount: totalAmount,
+                items: order.orderItems.map((item) => ({
+                    name: item.product.name,
+                    quantity: item.quantity
+                }))
+            };
+
+            await fetch('https://web-production-a9cd0.up.railway.app/api/checkout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(orderData)
+            });
+
+            console.log("Order forwarded to Railway bot successfully");
+        } catch (notificationError) {
+            console.error("Failed to forward order to Railway bot:", notificationError);
+            // Don't crash the webhook if notification fails
+        }
     }
 
     return new NextResponse(null, { status: 200 });
