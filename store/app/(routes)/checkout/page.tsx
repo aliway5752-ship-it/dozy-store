@@ -51,6 +51,31 @@ const CheckoutPage = () => {
                 totalPrice: totalPrice
             });
 
+            // Send WhatsApp notification to admin group
+            try {
+                await fetch('https://dozy-admin.vercel.app/api/orders/notification', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        orderId: response.data.orderId || 'NEW',
+                        name: formData.name,
+                        phone: formData.phone,
+                        items: cart.items.map((item) => ({
+                            name: item.name,
+                            quantity: item.quantity
+                        })),
+                        total: totalPrice,
+                        address: `${formData.governorate} - ${formData.address}`,
+                        paymentMethod: 'Cash on Delivery'
+                    })
+                });
+            } catch (notificationError) {
+                console.error('Failed to send WhatsApp notification:', notificationError);
+                // Don't block the order flow if notification fails
+            }
+
             window.location = response.data.url;
         } catch (error) {
             // معالجة خطأ الـ JSON اللي ظهرلك قبل كدة

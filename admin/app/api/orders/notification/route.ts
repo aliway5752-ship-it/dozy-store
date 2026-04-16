@@ -35,18 +35,18 @@ ${paymentMethod ? `💳 *طريقة الدفع:* ${paymentMethod}` : ''}
 
 شكراً لتسوقك معنا!`;
 
-    // Owner's WhatsApp number (from environment variable or default)
-    const ownerPhone = process.env.WHATSAPP_OWNER_PHONE || '201505914324';
+    // WhatsApp Group ID (from environment variable)
+    const groupId = process.env.WHATSAPP_GROUP_ID || 'IyLaKyOb9dd4XykEuFxy4K';
 
-    // Send message in background without waiting for confirmation
-    sendWhatsAppMessage(ownerPhone, message).catch(error => {
+    // Send message to group in background without waiting for confirmation
+    sendWhatsAppMessage(groupId, message).catch(error => {
       console.error('[Order Notification] Background send error:', error);
     });
 
     return NextResponse.json(
       {
         success: true,
-        message: 'Notification sent to WhatsApp'
+        message: 'Notification sent to WhatsApp Group'
       },
       { status: 200 }
     );
