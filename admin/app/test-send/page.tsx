@@ -52,9 +52,18 @@ export default function TestSendPage() {
           addLog('✅ Message sent successfully!');
         } else if (data.step === 'sending') {
           addLog('⏳ Message sending in background...');
+        } else if (data.step === 'accepted') {
+          addLog('✅ Connection started in background, message queued');
+        } else if (data.step === 'connecting') {
+          addLog('⏳ Connection starting, message will follow');
         }
 
         setStatus({ type: 'success', message: data.message || 'Message sent successfully!' });
+        setPhone('');
+        setMessage('');
+      } else if (response.status === 202) {
+        addLog('✅ Connection started in background, message queued');
+        setStatus({ type: 'success', message: data.message || 'Connection started, message queued' });
         setPhone('');
         setMessage('');
       } else {

@@ -105,49 +105,22 @@ Thank you for shopping at DozyFashion!
       `.trim();
     }
 
-    // Step 1: Connecting
-    console.log('[WhatsApp] Step 1: Establishing WhatsApp socket...');
-    const client = await getWhatsAppClient();
-
-    // Check if socket is actually open
-    const isSocketOpen = client?.ws?.isOpen;
-    const isSocketConnecting = client?.ws && !isSocketOpen;
-
-    // Step 2: Sending
-    console.log('[WhatsApp] Step 2: Socket state:', isSocketOpen ? 'open' : isSocketConnecting ? 'connecting' : 'unknown');
-
-    if (isSocketConnecting) {
-      // Socket is connecting, return success immediately
-      console.log('[WhatsApp] Socket is connecting, returning success immediately');
-      sendWhatsAppMessage(phone, formattedMessage).catch(error => {
-        console.error('[WhatsApp API] Background send error:', error);
-      });
-
-      return NextResponse.json(
-        {
-          success: true,
-          step: 'connecting',
-          message: 'Connection starting, message will follow'
-        },
-        { status: 200 }
-      );
-    }
-
-    console.log('[WhatsApp] Attempting background send for phone:', phone);
-
-    // Send message in background without waiting for ack (fire and forget)
-    sendWhatsAppMessage(phone, formattedMessage).catch(error => {
-      console.error('[WhatsApp API] Background send error:', error);
+    // Step 1: Lazy Socket - Start connection in background without waiting
+    console.log('[WhatsApp] Step 1: Starting connection in background...');
+    
+    // Start connection in background without awaiting
+    getWhatsAppClient().catch(error => {
+      console.error('[WhatsApp API] Background connection error:', error);
     });
 
-    // Return success immediately without waiting for ack
+    // Return 202 Accepted immediately (connection happens in background)
     return NextResponse.json(
       {
         success: true,
-        step: 'sending',
-        message: 'Message sent to socket (confirmation pending)'
+        step: 'accepted',
+        message: 'Connection started in background, message queued'
       },
-      { status: 200 }
+      { status: 202 }
     );
   } catch (error) {
     console.error('[WhatsApp API] Error:', error);

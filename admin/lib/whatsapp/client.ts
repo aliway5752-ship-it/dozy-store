@@ -53,7 +53,7 @@ async function useAuthState() {
 
   if (sessionDataEnv) {
     try {
-      console.log('[WhatsApp] Using pre-authenticated session from environment variable');
+      console.log('[WhatsApp] Using pre-authenticated session from environment variable (compressed)');
       const sessionData = JSON.parse(sessionDataEnv);
       creds = sessionData.creds || sessionData;
       isNewSession = false;
@@ -69,15 +69,22 @@ async function useAuthState() {
       // If the session data includes keys, we need to handle them
       if (sessionData.keys) {
         const keys: { [key: string]: any } = {};
+        // Only load essential keys (skip heavy historical data)
+        const essentialKeyPattern = /^app-state-sync|pre-keys|sender-key|app-state-key/;
+
         for (const [key, value] of Object.entries(sessionData.keys)) {
-          const keyPath = path.join(authPath, key);
-          const keyDir = path.dirname(keyPath);
-          if (!fs.existsSync(keyDir)) {
-            fs.mkdirSync(keyDir, { recursive: true });
+          // Skip heavy historical data keys
+          if (!key.includes('chat') && !key.includes('message') && !key.includes('history')) {
+            const keyPath = path.join(authPath, key);
+            const keyDir = path.dirname(keyPath);
+            if (!fs.existsSync(keyDir)) {
+              fs.mkdirSync(keyDir, { recursive: true });
+            }
+            safeWrite(keyPath, value);
+            keys[key] = value;
           }
-          safeWrite(keyPath, value);
-          keys[key] = value;
         }
+        console.log('[WhatsApp] Loaded essential keys only (compressed session)');
       }
     } catch (error) {
       console.error('[WhatsApp] Failed to parse WHATSAPP_SESSION_DATA:', error);
