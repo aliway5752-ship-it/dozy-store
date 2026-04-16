@@ -144,9 +144,9 @@ async function useAuthState() {
 export async function getWhatsAppClient(): Promise<WASocket> {
   console.log('[WhatsApp] Client initialization started...');
 
-  // Fast-path: Return existing client if already initialized
-  if (whatsappClient) {
-    console.log('[WhatsApp] Fast-path: Using existing client');
+  // Fast-path: Return existing client if already connected (check for user to verify connection)
+  if (whatsappClient?.user) {
+    console.log('[WhatsApp] Fast-path: Using existing connected client');
     return whatsappClient;
   }
 
@@ -173,8 +173,8 @@ export async function getWhatsAppClient(): Promise<WASocket> {
       shouldSyncHistoryMessage: () => false,
       markOnlineOnConnect: false,
       syncFullHistory: false,
-      // Socket tuning for maximum speed
-      connectTimeoutMs: 30000,
+      // Aggressive speed tuning for Vercel
+      connectTimeoutMs: 10000,
       defaultQueryTimeoutMs: undefined,
       keepAliveIntervalMs: 10000,
     });
