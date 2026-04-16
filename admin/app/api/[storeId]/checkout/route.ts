@@ -190,17 +190,41 @@ export async function POST(
         const orderData = {
           customerName: safeName,
           customerPhone: safePhone,
+          customerEmail: email,
+          governorate: address?.split(',')[0]?.trim() || '',
+          address: address,
           totalAmount: totalAmount,
           items: orderItemsWithDetails.map((item) => ({
             name: item.product.name,
-            quantity: item.quantity
-          }))
+            quantity: item.quantity,
+            size: item.size || 'N/A',
+            color: item.color || 'N/A'
+          })),
+          whatsappMessage: `
+🛒 *NEW ORDER RECEIVED*
+
+*[Customer Info]*
+👤 Name: ${safeName}
+📱 Phone: ${safePhone}
+📧 Email: ${email}
+
+*[Detailed Address]*
+📍 Address: ${address}
+
+*[Order Items]*
+${orderItemsWithDetails.map((item, index) => `${index + 1}. ${item.product.name} x${item.quantity}
+   - Size: ${item.size || 'N/A'}
+   - Color: ${item.color || 'N/A'}`).join('\n')}
+
+*[Total Amount]*
+💰 Total: ${totalAmount} EGP
+          `.trim()
         };
 
         const botUrl = "https://web-production-a9cd0.up.railway.app/api/checkout";
 
-        console.log("🚀 CRITICAL: Sending order data to Railway bot at:", botUrl);
-        console.log("📦 Payload being sent:", JSON.stringify(orderData, null, 2));
+        console.log("� FULL ORDER DATA BEING SENT TO BOT:", JSON.stringify(orderData, null, 2));
+        console.log("� CRITICAL: Sending order data to Railway bot at:", botUrl);
 
         const response = await fetch(botUrl, {
           method: 'POST',

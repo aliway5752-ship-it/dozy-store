@@ -53,69 +53,6 @@ const CheckoutPage = () => {
                 totalPrice: totalPrice
             });
 
-            // Send WhatsApp notification to Railway bot
-            try {
-                const botUrl = process.env.NEXT_PUBLIC_WHATSAPP_BOT_URL || 'https://web-production-a9cd0.up.railway.app';
-                const targetEndpoint = `${botUrl}/api/checkout`;
-
-                const orderData = {
-                    customerName: formData.name,
-                    customerPhone: formData.phone,
-                    customerEmail: formData.email,
-                    governorate: formData.governorate,
-                    address: formData.address,
-                    totalAmount: totalPrice,
-                    items: cart.items.map((item) => ({
-                        name: item.name,
-                        quantity: item.quantity,
-                        size: item.size?.name || 'N/A',
-                        color: item.color?.name || 'N/A'
-                    })),
-                    whatsappMessage: `
-🛒 *NEW ORDER RECEIVED*
-
-*[Customer Info]*
-👤 Name: ${formData.name}
-📱 Phone: ${formData.phone}
-📧 Email: ${formData.email}
-
-*[Detailed Address]*
-📍 Governorate: ${formData.governorate}
-🏠 Address: ${formData.address}
-
-*[Order Items]*
-${cart.items.map((item, index) => `${index + 1}. ${item.name} x${item.quantity}
-   - Size: ${item.size?.name || 'N/A'}
-   - Color: ${item.color?.name || 'N/A'}`).join('\n')}
-
-*[Total Amount]*
-💰 Total: ${totalPrice} EGP
-                    `.trim()
-                };
-
-                console.log("📦 FULL ORDER DATA BEING SENT TO BOT:", JSON.stringify(orderData, null, 2));
-                console.log("🚀 Sending to Railway bot at:", targetEndpoint);
-
-                const response = await fetch(targetEndpoint, {
-                    method: 'POST',
-                    mode: 'cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(orderData)
-                });
-
-                console.log("📡 BOT RESPONSE STATUS:", response.status);
-                if (response.ok) {
-                    console.log("✅ Railway bot received order successfully");
-                } else {
-                    console.log("❌ Railway bot rejected the order");
-                }
-            } catch (notificationError) {
-                console.error('❌ Failed to send WhatsApp notification:', notificationError);
-                // Don't block the order flow if notification fails
-            }
-
             window.location = response.data.url;
         } catch (error) {
             // معالجة خطأ الـ JSON اللي ظهرلك قبل كدة
