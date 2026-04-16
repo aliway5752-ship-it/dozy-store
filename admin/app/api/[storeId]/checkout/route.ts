@@ -182,49 +182,48 @@ export async function POST(
       try {
         const orderItemsWithDetails = await prismadb.orderItem.findMany({
           where: { orderId: order.id },
-          include: { product: true }
+          include: {
+            product: {
+              include: {
+                size: true,
+                color: true
+              }
+            }
+          }
         });
 
         const totalAmount = orderItemsWithDetails.reduce((sum, item) => sum + (Number(item.product.price) * item.quantity), 0) + (store.shippingPrice || 0);
 
+        // Parse address string to extract components (format: "governorate, city, streetName, addressDetails")
+        const addressParts = order.address ? order.address.split(',').map(p => p.trim()) : [];
+        const governorate = addressParts[0] || "";
+        const city = addressParts[1] || "";
+        const streetName = addressParts[2] || "";
+        const addressDetails = addressParts[3] || "";
+
         const orderData = {
-          customerName: safeName,
-          customerPhone: safePhone,
-          customerEmail: email,
-          governorate: address?.split(',')[0]?.trim() || '',
-          address: address,
+          customerName: order.customerName,
+          customerPhone: order.phone,
+          customerEmail: order.email || "",
+          governorate: governorate,
+          city: city,
+          streetName: streetName,
+          addressDetails: addressDetails,
+          landmark: order.landmark || "",
+          notes: order.notes || "",
           totalAmount: totalAmount,
           items: orderItemsWithDetails.map((item) => ({
             name: item.product.name,
             quantity: item.quantity,
-            size: item.size || 'N/A',
-            color: item.color || 'N/A'
-          })),
-          whatsappMessage: `
-🛒 *NEW ORDER RECEIVED*
-
-*[Customer Info]*
-👤 Name: ${safeName}
-📱 Phone: ${safePhone}
-📧 Email: ${email}
-
-*[Detailed Address]*
-📍 Address: ${address}
-
-*[Order Items]*
-${orderItemsWithDetails.map((item, index) => `${index + 1}. ${item.product.name} x${item.quantity}
-   - Size: ${item.size || 'N/A'}
-   - Color: ${item.color || 'N/A'}`).join('\n')}
-
-*[Total Amount]*
-💰 Total: ${totalAmount} EGP
-          `.trim()
+            size: item.product.size?.name || "",
+            color: item.product.color?.name || ""
+          }))
         };
 
         const botUrl = "https://web-production-a9cd0.up.railway.app/api/checkout";
 
-        console.log("� FULL ORDER DATA BEING SENT TO BOT:", JSON.stringify(orderData, null, 2));
-        console.log("� CRITICAL: Sending order data to Railway bot at:", botUrl);
+        console.log("📦 FULL ORDER DATA BEING SENT TO BOT:", JSON.stringify(orderData, null, 2));
+        console.log("🚀 CRITICAL: Sending order data to Railway bot at:", botUrl);
 
         const response = await fetch(botUrl, {
           method: 'POST',
